@@ -21,3 +21,4 @@
 #include "graphics2d_inspectors.h"
 #include "swatch_inspectors.h"
 #include "filter_inspectors.h"
+#include "music_inspectors.h"

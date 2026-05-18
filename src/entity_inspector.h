@@ -69,6 +69,14 @@ using ecs::midi_source_component;
 using ecs::canvas_effects_component;
 using ecs::uv_component;
 using ecs::uv_sample_component;
+// Music
+using ecs::transport_control_component;
+using ecs::clock_component;
+using ecs::sequencer_component;
+using ecs::pattern_component;
+using ecs::NoteEventKind;
+using ecs::note_event_component;
+using ecs::midi_output_component;
 using ecs::SwatchColor;
 using ecs::SwatchColorType;
 using ecs::ColorHarmony;
