@@ -6,7 +6,7 @@ meta:
 	ADDON_URL = https://github.com/ofrasp/ofxEnTTInspector
 
 common:
-	ADDON_DEPENDENCIES = ofxEnTTKit ofxImGui ofxImGuiFileDialog ofxMagicEnum
+	ADDON_DEPENDENCIES = ofxEnTTKit ofxImGui ofxImGuiFileDialog ofxMagicEnum ofxAssimpModelLoader 
 
 linux64:
 linuxarmv6l:

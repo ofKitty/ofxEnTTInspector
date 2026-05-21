@@ -161,6 +161,35 @@ void registerProperties(ecs::pattern_component& comp, ComponentInspector& inspec
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f,0.5f,0.5f,1.f));
         ImGui::Text("Rev: %u", comp.revision);
         ImGui::PopStyleColor();
+        if (ImGui::Button("Bump revision##pat")) {
+            ++comp.revision;
+        }
+    });
+}
+
+// ── Trigger pattern data ─────────────────────────────────────────────────────
+
+void registerProperties(ecs::trigger_pattern_data_component& comp, ComponentInspector& inspector)
+{
+    inspector.addProperty("Lanes", &comp.numLanes, 1, ecs::trigger_pattern_data_component::MaxLanes);
+
+    inspector.addCustomProperty("trigger_pat_grid", [&]() {
+        int active = 0;
+        for (int r = 0; r < comp.numLanes; ++r) {
+            for (int s = 0; s < ecs::trigger_pattern_data_component::MaxSteps; ++s)
+                if (comp.grid[r][s].active) ++active;
+        }
+        ImGui::TextDisabled("%d active steps in grid", active);
+        if (ImGui::Button("Apply grid to sequencer##tpd")) {
+            comp.requestApply = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Clear grid##tpd")) {
+            for (auto& row : comp.grid)
+                for (auto& step : row)
+                    step = {};
+            comp.requestApply = true;
+        }
     });
 }
 
@@ -180,6 +209,95 @@ void registerProperties(ecs::midi_output_component& comp, ComponentInspector& in
         ImGui::SameLine();
         ImGui::TextDisabled("(%d pending)", (int)comp.pending.size());
     });
+}
+
+// ── Trigger lane ─────────────────────────────────────────────────────────────
+
+void registerProperties(ecs::trigger_lane_component& comp, ComponentInspector& inspector)
+{
+    inspector.addProperty("Name", &comp.name);
+    inspector.addProperty("Lane index", &comp.laneIndex, 0, 15);
+    inspector.addProperty("Melodic lane", &comp.melodic);
+    inspector.addCustomProperty("trigger_lane_note", [&]() {
+        ImGui::SetNextItemWidth(80.f);
+        int n = comp.defaultNote;
+        if (ImGui::DragInt("Default note", &n, 1, -1, 127))
+            comp.defaultNote = n;
+        ImGui::SameLine();
+        if (comp.defaultNote >= 0)
+            ImGui::TextDisabled("%s%d", midiNoteName(comp.defaultNote), midiNoteOctave(comp.defaultNote));
+        else
+            ImGui::TextDisabled("unpitched");
+    });
+}
+
+// ── Trigger pattern ──────────────────────────────────────────────────────────
+
+void registerProperties(ecs::trigger_pattern_component& comp, ComponentInspector& inspector)
+{
+    inspector.addProperty("Name", &comp.name);
+    inspector.addProperty("Steps", &comp.numSteps, 1, 64);
+    inspector.addProperty("Lanes", &comp.numLanes, 1, 16);
+    inspector.addProperty("BPM", &comp.bpm, 20.f, 300.f, 0.5f);
+
+    inspector.addCustomProperty("trigger_pat_root", [&]() {
+        ImGui::SetNextItemWidth(80.f);
+        int n = comp.rootNote;
+        if (ImGui::DragInt("Root##tproot", &n, 1, 0, 127))
+            comp.rootNote = n;
+        ImGui::SameLine();
+        ImGui::TextDisabled("%s%d", midiNoteName(comp.rootNote), midiNoteOctave(comp.rootNote));
+    });
+
+    inspector.addCustomProperty("trigger_pat_scale", [&]() {
+        const char* scales[] = {"Chromatic","Major","Minor","Pentatonic","Blues"};
+        ImGui::Combo("Scale", &comp.scale, scales, 5);
+    });
+
+    inspector.addCustomProperty("trigger_pat_rev", [&]() {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f,0.5f,0.5f,1.f));
+        ImGui::Text("Rev: %u", comp.revision);
+        ImGui::PopStyleColor();
+        if (ImGui::Button("Bump + apply##tpat")) {
+            ++comp.revision;
+            comp.requestApply = true;
+        }
+    });
+}
+
+// ── Trigger sequencer ────────────────────────────────────────────────────────
+
+void registerProperties(ecs::trigger_sequencer_component& comp, ComponentInspector& inspector)
+{
+    inspector.addProperty("Steps", &comp.numSteps, 1, 64);
+    inspector.addProperty("Steps / beat", &comp.stepsPerBeat, 1, 16);
+    inspector.addProperty("Playing", &comp.playing);
+    inspector.addProperty("Chain enabled", &comp.chainEnabled);
+    inspector.addProperty("Chain length", &comp.chainLength, 1, 16);
+    inspector.addProperty("Active bank", &comp.activeBank, 0, 7);
+
+    inspector.addCustomProperty("trigger_seq_progress", [&]() {
+        float progress = comp.numSteps > 0
+            ? (float)(comp.currentStep + 1) / (float)comp.numSteps
+            : 0.f;
+        char overlay[32];
+        snprintf(overlay, sizeof(overlay), "Step %d / %d", comp.currentStep + 1, comp.numSteps);
+        ImGui::ProgressBar(progress, ImVec2(-1, 8.f), overlay);
+    });
+
+    inspector.addCustomProperty("trigger_seq_bar", [&]() {
+        ImGui::TextDisabled("Bar %d  chain pos %d", comp.currentBar + 1, comp.chainPosition);
+        if (comp.clockSource != entt::null)
+            ImGui::TextDisabled("Link clock: assign clockSource with externalSync");
+    });
+
+    if (ImGui::Button("Reset##trigseq")) {
+        comp.reset();
+        comp.requestApply = true;
+    }
+
+    if (ImGui::Button("Apply config##trigseq"))
+        comp.requestApply = true;
 }
 
 } // namespace inspector

@@ -212,6 +212,34 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
 
     #undef INSPECT_FILTER
 
+    // ── Music ────────────────────────────────────────────────────────────────
+    if (registry.any_of<transport_control_component>(entity))
+        changed |= inspectComponent(registry.get<transport_control_component>(entity), "Transport");
+
+    if (registry.any_of<clock_component>(entity))
+        changed |= inspectComponent(registry.get<clock_component>(entity), "Clock");
+
+    if (registry.any_of<sequencer_component>(entity))
+        changed |= inspectComponent(registry.get<sequencer_component>(entity), "Sequencer");
+
+    if (registry.any_of<pattern_component>(entity))
+        changed |= inspectComponent(registry.get<pattern_component>(entity), "Pattern");
+
+    if (registry.any_of<midi_output_component>(entity))
+        changed |= inspectComponent(registry.get<midi_output_component>(entity), "MIDI Output");
+
+    if (registry.any_of<trigger_lane_component>(entity))
+        changed |= inspectComponent(registry.get<trigger_lane_component>(entity), "Trigger Lane");
+
+    if (registry.any_of<trigger_pattern_component>(entity))
+        changed |= inspectComponent(registry.get<trigger_pattern_component>(entity), "Trigger Pattern");
+
+    if (registry.any_of<trigger_pattern_data_component>(entity))
+        changed |= inspectComponent(registry.get<trigger_pattern_data_component>(entity), "Trigger Pattern Grid");
+
+    if (registry.any_of<trigger_sequencer_component>(entity))
+        changed |= inspectComponent(registry.get<trigger_sequencer_component>(entity), "Trigger Sequencer");
+
     ImGui::PopID();
     return changed;
 }
