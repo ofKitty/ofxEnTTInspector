@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "imgui.h"
 #include "PropertyReflector.h"
+#include <algorithm>
 #include <string>
 #include <functional>
 #include <vector>
@@ -27,7 +28,7 @@ public:
     void addProperty(const std::string& name, float* value,
                      float min = 0.f, float max = 100.f, float speed = 1.f) {
         m_properties.push_back({name, [=]() -> bool {
-            return ImGui::DragFloat(name.c_str(), value, speed, min, max);
+            return ImGui::DragFloat("##", value, speed, min, max);
         }});
         m_reflected.emplace_back(name, PinDataType::Float, value, min, max);
     }
@@ -35,14 +36,14 @@ public:
     void addProperty(const std::string& name, int* value,
                      int min = 0, int max = 100, int speed = 1) {
         m_properties.push_back({name, [=]() -> bool {
-            return ImGui::DragInt(name.c_str(), value, (float)speed, min, max);
+            return ImGui::DragInt("##", value, (float)speed, min, max);
         }});
         m_reflected.emplace_back(name, PinDataType::Int, value, (float)min, (float)max);
     }
 
     void addProperty(const std::string& name, bool* value) {
         m_properties.push_back({name, [=]() -> bool {
-            return ImGui::Checkbox(name.c_str(), value);
+            return ImGui::Checkbox("##", value);
         }});
         m_reflected.emplace_back(name, PinDataType::Bool, value, 0.f, 1.f);
     }
@@ -51,7 +52,7 @@ public:
         m_properties.push_back({name, [=]() -> bool {
             char buf[256];
             strncpy(buf, value->c_str(), sizeof(buf));
-            if (ImGui::InputText(name.c_str(), buf, sizeof(buf))) {
+            if (ImGui::InputText("##", buf, sizeof(buf))) {
                 *value = buf;
                 return true;
             }
@@ -66,7 +67,7 @@ public:
             std::string s = value->string();
             strncpy(buf, s.c_str(), sizeof(buf));
             buf[sizeof(buf) - 1] = '\0';
-            if (ImGui::InputText(name.c_str(), buf, sizeof(buf))) {
+            if (ImGui::InputText("##", buf, sizeof(buf))) {
                 *value = buf;
                 return true;
             }
@@ -77,7 +78,7 @@ public:
     void addProperty(const std::string& name, glm::vec2* value,
                      float min = -FLT_MAX, float max = FLT_MAX, float speed = 1.f) {
         m_properties.push_back({name, [=]() -> bool {
-            return ImGui::DragFloat2(name.c_str(), (float*)value, speed, min, max);
+            return ImGui::DragFloat2("##", (float*)value, speed, min, max);
         }});
         m_reflected.emplace_back(name, PinDataType::Vec2, value, min, max);
     }
@@ -85,7 +86,7 @@ public:
     void addProperty(const std::string& name, glm::vec3* value,
                      float min = -FLT_MAX, float max = FLT_MAX, float speed = 1.f) {
         m_properties.push_back({name, [=]() -> bool {
-            return ImGui::DragFloat3(name.c_str(), (float*)value, speed, min, max);
+            return ImGui::DragFloat3("##", (float*)value, speed, min, max);
         }});
         m_reflected.emplace_back(name, PinDataType::Vec3, value, min, max);
     }
@@ -94,7 +95,7 @@ public:
         m_properties.push_back({name, [value, name]() -> bool {
             ofFloatColor fc = *value;
             ImVec4 c = ImVec4(fc.r, fc.g, fc.b, fc.a);
-            if (ImGui::ColorEdit4(name.c_str(), (float*)&c)) {
+            if (ImGui::ColorEdit4("##", (float*)&c)) {
                 value->set(c.x * 255.f, c.y * 255.f, c.z * 255.f, c.w * 255.f);
                 return true;
             }
@@ -106,7 +107,7 @@ public:
     void addProperty(const std::string& name, ofFloatColor* value) {
         m_properties.push_back({name, [value, name]() -> bool {
             ImVec4 c = ImVec4(value->r, value->g, value->b, value->a);
-            if (ImGui::ColorEdit4(name.c_str(), (float*)&c)) {
+            if (ImGui::ColorEdit4("##", (float*)&c)) {
                 value->set(c.x, c.y, c.z, c.w);
                 return true;
             }
@@ -117,7 +118,7 @@ public:
     void addProperty(const std::string& name, glm::vec4* value,
                      float min = -FLT_MAX, float max = FLT_MAX, float speed = 1.f) {
         m_properties.push_back({name, [=]() -> bool {
-            return ImGui::DragFloat4(name.c_str(), (float*)value, speed, min, max);
+            return ImGui::DragFloat4("##", (float*)value, speed, min, max);
         }});
         m_reflected.emplace_back(name, PinDataType::Vec4, value, min, max);
     }
@@ -125,7 +126,7 @@ public:
     void addProperty(const std::string& name, glm::quat* value) {
         m_properties.push_back({name, [value, name]() -> bool {
             glm::vec3 euler = glm::degrees(glm::eulerAngles(*value));
-            if (ImGui::DragFloat3(name.c_str(), (float*)&euler, 0.5f)) {
+            if (ImGui::DragFloat3("##", (float*)&euler, 0.5f)) {
                 *value = glm::quat(glm::radians(euler));
                 return true;
             }
@@ -142,7 +143,7 @@ public:
             labels.reserve(options.size());
             for (const auto& s : options) labels.push_back(s.c_str());
             int cur = static_cast<int>(*value);
-            if (ImGui::Combo(name.c_str(), &cur, labels.data(), (int)labels.size())) {
+            if (ImGui::Combo("##", &cur, labels.data(), (int)labels.size())) {
                 *value = static_cast<T>(cur);
                 return true;
             }
@@ -191,12 +192,49 @@ public:
     bool draw() {
         bool changed = false;
         if (ImGui::CollapsingHeader(m_componentName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::PushID(m_componentName.c_str());
-            ImGui::PushItemWidth(-120);
-            for (auto& prop : m_properties) changed |= prop.drawImGui();
-            ImGui::PopItemWidth();
+            changed = drawPanel();
+        }
+        return changed;
+    }
+
+    /// Draw registered widgets without a collapsing header (standalone panels).
+    /// Labels sit in a left column (auto-sized to longest name); widgets use the rest.
+    /// @param minLabelWidth  minimum pixels for the label column (0 = auto only).
+    bool drawPanel(float minLabelWidth = 0.f) {
+        bool changed = false;
+        if (m_properties.empty()) {
+            return false;
+        }
+
+        ImGui::PushID(m_componentName.c_str());
+
+        float labelColW = minLabelWidth;
+        for (const auto& prop : m_properties) {
+            if (prop.name.empty()) {
+                continue;
+            }
+            labelColW = std::max(labelColW, ImGui::CalcTextSize(prop.name.c_str()).x);
+        }
+        labelColW += ImGui::GetStyle().ItemInnerSpacing.x * 2.f;
+
+        for (auto& prop : m_properties) {
+            ImGui::PushID(prop.name.empty() ? "row" : prop.name.c_str());
+
+            if (prop.name.empty()) {
+                changed |= prop.drawImGui();
+            } else {
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted(prop.name.c_str());
+                ImGui::SameLine(labelColW);
+                const float widgetW = std::max(ImGui::GetContentRegionAvail().x, 48.f);
+                ImGui::SetNextItemWidth(widgetW);
+                changed |= prop.drawImGui();
+            }
+
             ImGui::PopID();
         }
+
+        ImGui::PopID();
         return changed;
     }
 

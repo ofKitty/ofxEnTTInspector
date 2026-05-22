@@ -22,3 +22,5 @@
 #include "swatch_inspectors.h"
 #include "filter_inspectors.h"
 #include "music_inspectors.h"
+#include "color_band_inspectors.h"
+#include "trace_inspectors.h"
