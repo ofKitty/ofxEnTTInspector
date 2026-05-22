@@ -1,6 +1,6 @@
 #include "filter_inspectors.h"
 #include "imgui.h"
-#include "ofxEnTTKit/src/components/base_components.h"
+#include "components/base_components.h"
 
 namespace inspector {
 

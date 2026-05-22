@@ -2,8 +2,8 @@
 
 #include <ofxEnTTKit.h>
 #include "imgui.h"
-#include "../ComponentInspector.h"
-#include "../TransformOriginComponent.h"
+#include "ComponentInspector.h"
+#include "TransformOriginComponent.h"
 #include <map>
 #include <fstream>
 #include <cstring>

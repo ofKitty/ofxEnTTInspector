@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ofxEnTTKit/src/components/swatch_components.h"
-#include "../ComponentInspector.h"
+#include "components/swatch_components.h"
+#include "ComponentInspector.h"
 
 namespace inspector {
 

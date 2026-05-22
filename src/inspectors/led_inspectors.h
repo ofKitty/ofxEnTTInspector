@@ -3,7 +3,7 @@
 #include <ofxEnTTKit.h>
 #include <entt/entity/fwd.hpp>
 #include "imgui.h"
-#include "../ComponentInspector.h"
+#include "ComponentInspector.h"
 #include <sstream>
 #include <iomanip>
 

@@ -4,8 +4,8 @@
 #include "ofJson.h"
 #include "inspectors/inspectors.h"
 #include <ofxEnTTKit.h>
-#include "ofxEnTTKit/src/components/filter_components.h"
-#include "ofxEnTTKit/src/components/eased_pulse_component.h"
+#include "components/filter_components.h"
+#include "components/eased_pulse_component.h"
 
 namespace inspector {
 

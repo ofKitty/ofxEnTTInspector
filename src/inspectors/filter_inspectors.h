@@ -1,12 +1,12 @@
 #pragma once
 
-#include "ofxEnTTKit/src/components/filter_components.h"
-#include "ofxEnTTKit/src/components/generator_components.h"
-#include "ofxEnTTKit/src/components/draw_filter_components.h"
-#include "ofxEnTTKit/src/components/eased_pulse_component.h"
-#include "ofxEnTTKit/src/components/state_components.h"
-#include "ofxEnTTKit/src/components/canvas_effects_component.h"
-#include "../ComponentInspector.h"
+#include "components/filter_components.h"
+#include "components/generator_components.h"
+#include "components/draw_filter_components.h"
+#include "components/eased_pulse_component.h"
+#include "components/state_components.h"
+#include "components/canvas_effects_component.h"
+#include "ComponentInspector.h"
 
 namespace inspector {
 

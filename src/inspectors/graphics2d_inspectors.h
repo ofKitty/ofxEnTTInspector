@@ -2,7 +2,7 @@
 
 #include <ofxEnTTKit.h>
 #include "imgui.h"
-#include "../ComponentInspector.h"
+#include "ComponentInspector.h"
 
 namespace inspector {
 
