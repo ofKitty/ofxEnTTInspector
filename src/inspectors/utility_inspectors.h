@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ofxEnTTKit.h>
+#include <ofxEnTTKit_all.h>
 #include "imgui.h"
 #include "ComponentInspector.h"
 
@@ -11,5 +11,6 @@ void registerProperties(ecs::gizmo_component& comp, ComponentInspector& inspecto
 void registerProperties(ecs::bounding_box_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::mask_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::rigidbody_component& comp, ComponentInspector& inspector);
+void registerProperties(ecs::layer_component& comp, ComponentInspector& inspector);
 
 } // namespace inspector

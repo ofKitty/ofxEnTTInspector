@@ -25,3 +25,4 @@
 #include "music_inspectors.h"
 #include "color_band_inspectors.h"
 #include "trace_inspectors.h"
+#include "code_snippet_inspectors.h"

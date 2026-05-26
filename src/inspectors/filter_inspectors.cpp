@@ -137,6 +137,12 @@ void registerProperties(ecs::chromatic_aberration_component& c, ComponentInspect
     inspector.addProperty("Radial", &c.radial);
 }
 
+void registerProperties(ecs::edge_detect_filter_component& c, ComponentInspector& inspector) {
+    inspector.addProperty("Enabled", &c.enabled);
+    inspector.addProperty("Order", &c.order);
+    inspector.addProperty("Strength", &c.strength, 0.0f, 1.0f, 0.01f);
+}
+
 void registerProperties(ecs::gradient_generator_component& c, ComponentInspector& inspector) {
     inspector.addProperty("Enabled", &c.enabled);
     inspector.addCustomProperty("Direction", [&c]() {
@@ -242,6 +248,14 @@ void registerProperties(ecs::mesh_filter_component& c, ComponentInspector& inspe
     if (c.drawBackground) {
         inspector.addProperty("Background", &c.backgroundColor);
     }
+}
+
+void registerProperties(ecs::noise_displacement_component& c, ComponentInspector& inspector) {
+    inspector.addProperty("Enabled", &c.enabled);
+    inspector.addProperty("Scale", &c.scale, 0.001f, 0.5f, 0.001f);
+    inspector.addProperty("Amplitude", &c.amplitude, 0.f, 100.f, 0.5f);
+    inspector.addProperty("Speed", &c.speed, 0.f, 10.f, 0.1f);
+    inspector.addProperty("Time Offset", &c.timeOffset, 0.f, 100.f, 0.1f);
 }
 
 void registerProperties(ecs::rings_filter_component& c, ComponentInspector& inspector) {

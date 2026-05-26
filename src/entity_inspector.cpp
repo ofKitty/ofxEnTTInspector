@@ -42,8 +42,12 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     if (registry.any_of<tag_component>(entity))
         changed |= inspectComponent(registry.get<tag_component>(entity), "Tag");
 
-    if (registry.any_of<selectable_component>(entity))
-        changed |= inspectComponent(registry.get<selectable_component>(entity), "Selectable");
+    if (registry.any_of<code_snippet_component>(entity))
+        changed |= inspectComponent(registry.get<code_snippet_component>(entity), "Code");
+
+    if (registry.any_of<selectable_component>(entity)) {
+        // Internal sync flag — not shown in Properties.
+    }
 
     if (registry.any_of<mesh_component>(entity))
         changed |= inspectComponent(registry.get<mesh_component>(entity), "Mesh");
@@ -123,6 +127,9 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     if (registry.any_of<grid_helper_component>(entity))
         changed |= inspectComponent(registry.get<grid_helper_component>(entity), "Grid Helper");
 
+    if (registry.any_of<ecs::layer_component>(entity))
+        changed |= inspectComponent(registry.get<ecs::layer_component>(entity), "Layer");
+
     if (registry.any_of<gizmo_component>(entity))
         changed |= inspectComponent(registry.get<gizmo_component>(entity), "Gizmo");
 
@@ -190,9 +197,11 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     INSPECT_FILTER(noise_filter_component,           "Noise Filter")
     INSPECT_FILTER(vignette_filter_component,        "Vignette Filter")
     INSPECT_FILTER(chromatic_aberration_component,   "Chromatic Aberration")
+    INSPECT_FILTER(edge_detect_filter_component,     "Edge Detect Filter")
     INSPECT_FILTER(pixelate_filter_component,        "Pixelate Filter")
     INSPECT_FILTER(mesh_filter_component,            "Mesh Filter")
     INSPECT_FILTER(rings_filter_component,           "Rings Filter")
+    INSPECT_FILTER(noise_displacement_component,     "Noise Displacement")
     INSPECT_FILTER(line_scan_filter_component,       "Line Scan Filter")
     INSPECT_FILTER(ascii_filter_component,           "ASCII Filter")
 
@@ -239,6 +248,9 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
 
     if (registry.any_of<trigger_sequencer_component>(entity))
         changed |= inspectComponent(registry.get<trigger_sequencer_component>(entity), "Trigger Sequencer");
+
+    if (extraEntityInspector())
+        changed |= extraEntityInspector()(registry, entity);
 
     ImGui::PopID();
     return changed;

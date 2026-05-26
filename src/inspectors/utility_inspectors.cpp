@@ -192,4 +192,16 @@ void registerProperties(ecs::rigidbody_component& comp, ComponentInspector& insp
     });
 }
 
+// ============================================================================
+// Layer Component Inspector
+// ============================================================================
+
+void registerProperties(ecs::layer_component& comp, ComponentInspector& inspector) {
+    inspector.addProperty("Name", &comp.name);
+    inspector.addProperty("Index", &comp.index, 0, 9999);
+    inspector.addProperty("Visible", &comp.visible);
+    inspector.addProperty("Locked", &comp.locked);
+    inspector.addProperty("Colour", &comp.color);
+}
+
 } // namespace inspector

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ofxEnTTKit.h>
+#include <ofxEnTTKit_all.h>
 #include <entt/entity/fwd.hpp>
 #include "imgui.h"
 #include "ComponentInspector.h"

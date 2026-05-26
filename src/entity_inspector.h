@@ -6,11 +6,27 @@
 // No app framework dependency — pass only the entt::registry.
 // ============================================================================
 
-#include <ofxEnTTKit.h>
+#include <ofxEnTTKit_all.h>
 #include "inspectors/inspectors.h"
 #include "ComponentInspector.h"
 
+#include <functional>
+
 namespace inspector {
+
+/// Optional hook for domain addons (e.g. ofxPlotter) to inspect extra components.
+using ExtraEntityInspectorFn = std::function<bool(entt::registry&, entt::entity)>;
+
+inline ExtraEntityInspectorFn& extraEntityInspector()
+{
+    static ExtraEntityInspectorFn fn;
+    return fn;
+}
+
+inline void setExtraEntityInspector(ExtraEntityInspectorFn fn)
+{
+    extraEntityInspector() = std::move(fn);
+}
 
 using ecs::node_component;
 using ecs::render_component;
@@ -18,6 +34,7 @@ using ecs::camera_component;
 using ecs::fbo_component;
 using ecs::fbo_reference_component;
 using ecs::tag_component;
+using ecs::code_snippet_component;
 using ecs::selectable_component;
 using ecs::mesh_component;
 using ecs::model_component;

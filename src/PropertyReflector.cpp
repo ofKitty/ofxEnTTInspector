@@ -3,8 +3,9 @@
 #include "ComponentInspector.h"
 #include "ofJson.h"
 #include "inspectors/inspectors.h"
-#include <ofxEnTTKit.h>
+#include <ofxEnTTKit_all.h>
 #include "components/filter_components.h"
+#include "components/draw_filter_components.h"
 #include "components/eased_pulse_component.h"
 
 namespace inspector {
@@ -103,9 +104,11 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT(ecs::noise_filter_component)
     REFLECT(ecs::vignette_filter_component)
     REFLECT(ecs::chromatic_aberration_component)
+    REFLECT(ecs::edge_detect_filter_component)
     REFLECT(ecs::pixelate_filter_component)
     REFLECT(ecs::mesh_filter_component)
     REFLECT(ecs::rings_filter_component)
+    REFLECT(ecs::noise_displacement_component)
     REFLECT(ecs::line_scan_filter_component)
     REFLECT(ecs::ascii_filter_component)
 

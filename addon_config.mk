@@ -6,7 +6,7 @@ meta:
 	ADDON_URL = https://github.com/ofrasp/ofxEnTTInspector
 
 common:
-	ADDON_DEPENDENCIES = ofxEnTTKit ofxImGui ofxImGuiFileDialog ofxMagicEnum ofxAssimpModelLoader
+	ADDON_DEPENDENCIES = ofxEnTTKit ofxImGui ofxImGuiTextEdit ofxImGuiFileDialog ofxMagicEnum ofxAssimpModelLoader
 	# src — #include "ComponentInspector.h", #include "inspectors/trace_inspectors.h"
 	ADDON_INCLUDES += src
 
