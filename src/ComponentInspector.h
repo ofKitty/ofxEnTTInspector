@@ -7,7 +7,6 @@
 #include <string>
 #include <functional>
 #include <vector>
-#include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -61,7 +60,7 @@ public:
         m_reflected.emplace_back(name, PinDataType::String, value);
     }
 
-    void addProperty(const std::string& name, std::filesystem::path* value) {
+    void addProperty(const std::string& name, of::filesystem::path* value) {
         m_properties.push_back({name, [=]() -> bool {
             char buf[512];
             std::string s = value->string();
