@@ -98,12 +98,10 @@ using ecs::trigger_lane_component;
 using ecs::trigger_pattern_component;
 using ecs::trigger_pattern_data_component;
 using ecs::trigger_sequencer_component;
-using ecs::SwatchColor;
-using ecs::SwatchColorType;
-using ecs::ColorHarmony;
 using ecs::GradientStop;
 using ecs::swatch_library_component;
 using ecs::color_gradient_component;
+using ecs::swatch_palette_ref_component;
 
 // Generic single-component inspector
 template<typename T>

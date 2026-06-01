@@ -177,6 +177,12 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     if (registry.any_of<color_gradient_component>(entity))
         changed |= inspectComponent(registry.get<color_gradient_component>(entity), "Color Gradient");
 
+    if (registry.any_of<swatch_palette_ref_component>(entity))
+        changed |= inspectComponent(registry.get<swatch_palette_ref_component>(entity), "Swatch Palette Ref");
+
+    if (registry.any_of<ecs::color_band_component>(entity))
+        changed |= inspectComponent(registry.get<ecs::color_band_component>(entity), "Color Band");
+
     // ── Filters ──────────────────────────────────────────────────────────────
     #define INSPECT_FILTER(T, label) \
         if (registry.any_of<ecs::T>(entity)) { \

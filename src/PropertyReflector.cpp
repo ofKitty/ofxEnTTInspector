@@ -91,6 +91,7 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
 
     REFLECT(ecs::swatch_library_component)
     REFLECT(ecs::color_gradient_component)
+    REFLECT(ecs::swatch_palette_ref_component)
 
     REFLECT(ecs::tint_filter_component)
     REFLECT(ecs::invert_filter_component)

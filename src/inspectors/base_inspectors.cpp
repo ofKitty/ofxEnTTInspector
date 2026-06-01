@@ -387,16 +387,34 @@ void registerProperties(ecs::image_component& comp, ComponentInspector& inspecto
                         entt::registry& registry, entt::entity entity) {
     inspector.addCustomProperty("File", [&registry, entity]() {
         if (auto* pc = registry.try_get<ecs::filepath_component>(entity))
-            ImGui::Text("File: %s", pc->getFileName().c_str());
+            ImGui::TextUnformatted(pc->getFileName().c_str());
         else ImGui::TextDisabled("No path");
     });
-    inspector.addCustomProperty("Preview", [&comp]() {
+    inspector.addCustomProperty("", [&comp, &registry, entity]() {
         if (!comp.image.isAllocated()) { ImGui::TextDisabled("Image not allocated"); return; }
-        glm::vec2 avail = ImGui::GetContentRegionAvail();
-        float scale = std::min({ avail.x / (float)comp.image.getWidth(), avail.y / (float)comp.image.getHeight(), 1.f });
+        const float maxW = ImGui::GetContentRegionAvail().x;
+        float scale = std::min(maxW / (float)comp.image.getWidth(), 1.f);
         glm::vec2 sz = glm::vec2(comp.image.getWidth(), comp.image.getHeight()) * scale;
         ImGui::Image((ImTextureID)(uintptr_t)comp.image.getTexture().getTextureData().textureID, ImVec2(sz.x, sz.y));
-        ImGui::Text("Size: %dx%d", (int)comp.image.getWidth(), (int)comp.image.getHeight());
+
+        // Pixel dimensions
+        const int pw = (int)comp.image.getWidth(), ph = (int)comp.image.getHeight();
+        // File size from filepath_component (if present)
+        std::string sizeStr;
+        if (auto* pc = registry.try_get<ecs::filepath_component>(entity)) {
+            std::error_code ec;
+            auto bytes = of::filesystem::file_size(pc->path, ec);
+            if (!ec && bytes > 0) {
+                if (bytes >= 1024 * 1024)
+                    sizeStr = ofToString((float)bytes / (1024.f * 1024.f), 1) + " MB";
+                else
+                    sizeStr = ofToString((int)(bytes / 1024)) + " KB";
+            }
+        }
+        if (sizeStr.empty())
+            ImGui::Text("%dx%d px", pw, ph);
+        else
+            ImGui::Text("%dx%d px  •  %s", pw, ph, sizeStr.c_str());
     });
 }
 
@@ -416,15 +434,34 @@ void registerProperties(ecs::video_component& comp, ComponentInspector& inspecto
                         entt::registry& registry, entt::entity entity) {
     inspector.addCustomProperty("File", [&registry, entity]() {
         if (auto* pc = registry.try_get<ecs::filepath_component>(entity))
-            ImGui::Text("File: %s", pc->getFileName().c_str());
+            ImGui::TextUnformatted(pc->getFileName().c_str());
         else ImGui::TextDisabled("No path");
     });
-    inspector.addCustomProperty("Preview", [&comp]() {
+    inspector.addCustomProperty("", [&comp, &registry, entity]() {
         if (!comp.videoPlayer.isLoaded()) return;
-        glm::vec2 avail = ImGui::GetContentRegionAvail();
-        float scale = std::min({ avail.x / comp.videoPlayer.getWidth(), avail.y / comp.videoPlayer.getHeight(), 1.f });
+        const float maxW = ImGui::GetContentRegionAvail().x;
+        float scale = std::min({ maxW / comp.videoPlayer.getWidth(), 1.f });
         glm::vec2 sz(comp.videoPlayer.getWidth() * scale, comp.videoPlayer.getHeight() * scale);
         ImGui::Image((ImTextureID)(uintptr_t)comp.videoPlayer.getTexture().getTextureData().textureID, ImVec2(sz.x, sz.y));
+
+        // Pixel dimensions + file size
+        const int pw = (int)comp.videoPlayer.getWidth(), ph = (int)comp.videoPlayer.getHeight();
+        std::string sizeStr;
+        if (auto* pc = registry.try_get<ecs::filepath_component>(entity)) {
+            std::error_code ec;
+            auto bytes = of::filesystem::file_size(pc->path, ec);
+            if (!ec && bytes > 0) {
+                if (bytes >= 1024 * 1024)
+                    sizeStr = ofToString((float)bytes / (1024.f * 1024.f), 1) + " MB";
+                else
+                    sizeStr = ofToString((int)(bytes / 1024)) + " KB";
+            }
+        }
+        if (sizeStr.empty())
+            ImGui::Text("%dx%d px", pw, ph);
+        else
+            ImGui::Text("%dx%d px  •  %s", pw, ph, sizeStr.c_str());
+
         int frame = comp.videoPlayer.getCurrentFrame();
         ImGui::SetNextItemWidth(sz.x);
         if (ImGui::SliderInt("Frame", &frame, 0, comp.videoPlayer.getTotalNumFrames()))
@@ -441,7 +478,7 @@ void registerProperties(ecs::video_component& comp, ComponentInspector& inspecto
 
 void registerProperties(ecs::model_component& comp, ComponentInspector& inspector) {
     inspector.addCustomProperty("Info", [&comp]() {
-        if (comp.model.hasMeshes()) ImGui::Text("Meshes: %zu", comp.model.getMeshCount());
+        if (comp.model.hasMeshes()) ImGui::Text("Meshes: %u", (unsigned)comp.model.getMeshCount());
         else ImGui::TextDisabled("No model loaded");
     });
 }
@@ -450,7 +487,7 @@ void registerProperties(ecs::model_component& comp, ComponentInspector& inspecto
                         entt::registry& registry, entt::entity entity) {
     inspector.addCustomProperty("File", [&registry, entity]() {
         if (auto* pc = registry.try_get<ecs::filepath_component>(entity))
-            ImGui::Text("File: %s", pc->getFileName().c_str());
+            ImGui::TextUnformatted(pc->getFileName().c_str());
         else ImGui::TextDisabled("No path");
     });
     registerProperties(comp, inspector);
