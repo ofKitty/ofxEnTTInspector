@@ -1,4 +1,5 @@
 #include "music_inspectors.h"
+#include <algorithm>
 
 namespace inspector {
 
@@ -6,6 +7,24 @@ namespace inspector {
 static const char* s_noteNames[] = {
     "C","C#","D","D#","E","F","F#","G","G#","A","A#","B"
 };
+
+// Resize the grid in place so the inspector can edit lanes/steps without any
+// dependency on a sequencer addon. Pure data manipulation on ECS vectors.
+static void resizeTriggerGrid(ecs::trigger_pattern_data_component& d, int lanes, int steps)
+{
+    lanes = std::max(1, lanes);
+    steps = std::max(1, steps);
+    const int oldLanes = static_cast<int>(d.grid.size());
+    d.grid.resize(static_cast<std::size_t>(lanes));
+    for (int r = 0; r < lanes; ++r) {
+        const int oldSteps = (r < oldLanes) ? static_cast<int>(d.grid[r].size()) : 0;
+        d.grid[r].resize(static_cast<std::size_t>(steps));
+        for (int s = oldSteps; s < steps; ++s)
+            d.grid[r][s] = ecs::trigger_step{};
+    }
+    d.numLanes = lanes;
+    d.numSteps = std::clamp(d.numSteps, 1, steps);
+}
 static const char* midiNoteName(int note)
 {
     if (note < 0 || note > 127) return "?";
@@ -144,7 +163,7 @@ void registerProperties(ecs::pattern_component& comp, ComponentInspector& inspec
     inspector.addProperty("BPM",   &comp.bpm, 20.f, 300.f, 0.5f);
 
     inspector.addCustomProperty("pattern_root", [&]() {
-        ImGui::SetNextItemWidth(80.f);
+            ImGui::SetNextItemWidth(80.f);
         int n = comp.rootNote;
         if (ImGui::DragInt("Root##root", &n, 1, 0, 127))
             comp.rootNote = n;
@@ -175,7 +194,7 @@ void registerProperties(ecs::trigger_pattern_data_component& comp, ComponentInsp
     inspector.addProperty("Steps", &comp.numSteps, 1, 9999);
 
     inspector.addCustomProperty("trigger_pat_grid", [&]() {
-        comp.resizeGrid(comp.numLanes, comp.numSteps);
+        resizeTriggerGrid(comp, comp.numLanes, comp.numSteps);
 
         int active = 0;
         const int lanes = std::min(comp.numLanes, static_cast<int>(comp.grid.size()));
@@ -187,12 +206,10 @@ void registerProperties(ecs::trigger_pattern_data_component& comp, ComponentInsp
         }
         ImGui::TextDisabled("%d active steps  (%d lanes x %d steps)", active, lanes, steps);
         if (ImGui::Button("Apply grid to sequencer##tpd")) {
-            comp.resizeGrid(comp.numLanes, comp.numSteps);
             comp.requestApply = true;
         }
         ImGui::SameLine();
         if (ImGui::Button("Clear grid##tpd")) {
-            comp.resizeGrid(comp.numLanes, comp.numSteps);
             for (auto& row : comp.grid)
                 for (auto& step : row)
                     step = {};
