@@ -171,20 +171,28 @@ void registerProperties(ecs::pattern_component& comp, ComponentInspector& inspec
 
 void registerProperties(ecs::trigger_pattern_data_component& comp, ComponentInspector& inspector)
 {
-    inspector.addProperty("Lanes", &comp.numLanes, 1, ecs::trigger_pattern_data_component::MaxLanes);
+    inspector.addProperty("Lanes", &comp.numLanes, 1, 9999);
+    inspector.addProperty("Steps", &comp.numSteps, 1, 9999);
 
     inspector.addCustomProperty("trigger_pat_grid", [&]() {
+        comp.resizeGrid(comp.numLanes, comp.numSteps);
+
         int active = 0;
-        for (int r = 0; r < comp.numLanes; ++r) {
-            for (int s = 0; s < ecs::trigger_pattern_data_component::MaxSteps; ++s)
+        const int lanes = std::min(comp.numLanes, static_cast<int>(comp.grid.size()));
+        const int steps = comp.grid.empty() ? 0 : static_cast<int>(comp.grid[0].size());
+        for (int r = 0; r < lanes; ++r) {
+            const int rowSteps = std::min(steps, static_cast<int>(comp.grid[r].size()));
+            for (int s = 0; s < rowSteps; ++s)
                 if (comp.grid[r][s].active) ++active;
         }
-        ImGui::TextDisabled("%d active steps in grid", active);
+        ImGui::TextDisabled("%d active steps  (%d lanes x %d steps)", active, lanes, steps);
         if (ImGui::Button("Apply grid to sequencer##tpd")) {
+            comp.resizeGrid(comp.numLanes, comp.numSteps);
             comp.requestApply = true;
         }
         ImGui::SameLine();
         if (ImGui::Button("Clear grid##tpd")) {
+            comp.resizeGrid(comp.numLanes, comp.numSteps);
             for (auto& row : comp.grid)
                 for (auto& step : row)
                     step = {};
@@ -236,8 +244,8 @@ void registerProperties(ecs::trigger_lane_component& comp, ComponentInspector& i
 void registerProperties(ecs::trigger_pattern_component& comp, ComponentInspector& inspector)
 {
     inspector.addProperty("Name", &comp.name);
-    inspector.addProperty("Steps", &comp.numSteps, 1, 64);
-    inspector.addProperty("Lanes", &comp.numLanes, 1, 16);
+    inspector.addProperty("Steps", &comp.numSteps, 1, 9999);
+    inspector.addProperty("Lanes", &comp.numLanes, 1, 9999);
     inspector.addProperty("BPM", &comp.bpm, 20.f, 300.f, 0.5f);
 
     inspector.addCustomProperty("trigger_pat_root", [&]() {
@@ -269,12 +277,12 @@ void registerProperties(ecs::trigger_pattern_component& comp, ComponentInspector
 
 void registerProperties(ecs::trigger_sequencer_component& comp, ComponentInspector& inspector)
 {
-    inspector.addProperty("Steps", &comp.numSteps, 1, 64);
-    inspector.addProperty("Steps / beat", &comp.stepsPerBeat, 1, 16);
+    inspector.addProperty("Steps", &comp.numSteps, 1, 9999);
+    inspector.addProperty("Steps / beat", &comp.stepsPerBeat, 1, 64);
     inspector.addProperty("Playing", &comp.playing);
     inspector.addProperty("Chain enabled", &comp.chainEnabled);
-    inspector.addProperty("Chain length", &comp.chainLength, 1, 16);
-    inspector.addProperty("Active bank", &comp.activeBank, 0, 7);
+    inspector.addProperty("Chain length", &comp.chainLength, 1, 9999);
+    inspector.addProperty("Active bank", &comp.activeBank, 0, 9999);
 
     inspector.addCustomProperty("trigger_seq_progress", [&]() {
         float progress = comp.numSteps > 0
