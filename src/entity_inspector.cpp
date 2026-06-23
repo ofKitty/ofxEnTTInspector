@@ -174,9 +174,6 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     if (registry.any_of<swatch_library_component>(entity))
         changed |= inspectComponent(registry.get<swatch_library_component>(entity), "Swatch Library");
 
-    if (registry.any_of<color_gradient_component>(entity))
-        changed |= inspectComponent(registry.get<color_gradient_component>(entity), "Color Gradient");
-
     if (registry.any_of<swatch_palette_ref_component>(entity))
         changed |= inspectComponent(registry.get<swatch_palette_ref_component>(entity), "Swatch Palette Ref");
 
@@ -212,7 +209,6 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     INSPECT_FILTER(ascii_filter_component,           "ASCII Filter")
 
     // ── Generators ───────────────────────────────────────────────────────────
-    INSPECT_FILTER(gradient_generator_component,     "Gradient Generator")
     INSPECT_FILTER(dots_generator_component,         "Dots Generator")
     INSPECT_FILTER(stripes_generator_component,      "Stripes Generator")
     INSPECT_FILTER(checkerboard_generator_component, "Checkerboard Generator")
@@ -257,6 +253,9 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
 
     if (extraEntityInspector())
         changed |= extraEntityInspector()(registry, entity);
+
+    for (auto& fn : extraEntityInspectors())
+        if (fn) changed |= fn(registry, entity);
 
     ImGui::PopID();
     return changed;

@@ -90,6 +90,8 @@ void registerProperties(ecs::modulator_component& comp, ComponentInspector& insp
                 case ecs::MOD_SH:
                     v = ((int)(t * 8) % 2) ? 0.7f : 0.3f;
                     break;
+                case ecs::MOD_COUNT:
+                    break;
             }
             
             float y = pos.y + size.y - (v * size.y);

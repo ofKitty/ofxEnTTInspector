@@ -822,62 +822,6 @@ void registerProperties(ecs::text_2d_component& comp, ComponentInspector& inspec
 }
 
 // ============================================================================
-// Gradient Component Inspector
-// ============================================================================
-
-void registerProperties(ecs::gradient_component& comp, ComponentInspector& inspector) {
-    inspector.addProperty("Color Start", &comp.colorStart);
-    inspector.addProperty("Color End", &comp.colorEnd);
-    
-    inspector.addCustomProperty("Type", [&]() {
-        int type = (int)comp.type;
-        if (ImGui::Combo("Gradient Type", &type, "Linear\0Radial\0")) {
-            comp.type = (ecs::gradient_component::GradientType)type;
-            comp.needsRebuild = true;
-        }
-    });
-    
-    if (comp.type == ecs::gradient_component::LINEAR) {
-        inspector.addCustomProperty("Angle", [&]() {
-            if (ImGui::DragFloat("Angle", &comp.angle, 1.0f, 0.0f, 360.0f)) {
-                comp.needsRebuild = true;
-            }
-        });
-    } else {
-        inspector.addCustomProperty("Radial Settings", [&]() {
-            if (ImGui::DragFloat2("Center", &comp.center.x, 1.0f)) {
-                comp.needsRebuild = true;
-            }
-            if (ImGui::DragFloat("Inner Radius", &comp.innerRadius, 1.0f, 0.0f, 1000.0f)) {
-                comp.needsRebuild = true;
-            }
-            if (ImGui::DragFloat("Outer Radius", &comp.outerRadius, 1.0f, 1.0f, 1000.0f)) {
-                comp.needsRebuild = true;
-            }
-        });
-    }
-    
-    inspector.addCustomProperty("Size", [&]() {
-        if (ImGui::DragFloat("Width", &comp.width, 1.0f, 1.0f, 5000.0f)) {
-            comp.needsRebuild = true;
-        }
-        if (ImGui::DragFloat("Height", &comp.height, 1.0f, 1.0f, 5000.0f)) {
-            comp.needsRebuild = true;
-        }
-    });
-    
-    inspector.addCustomProperty("Rebuild", [&]() {
-        if (ImGui::Button("Rebuild Gradient")) {
-            comp.rebuild();
-        }
-        if (comp.needsRebuild) {
-            ImGui::SameLine();
-            ImGui::TextColored(ImVec4(1, 1, 0, 1), "Needs Rebuild");
-        }
-    });
-}
-
-// ============================================================================
 // Grid Component Inspector
 // ============================================================================
 

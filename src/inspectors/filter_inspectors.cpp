@@ -1,4 +1,5 @@
 #include "filter_inspectors.h"
+#include "components/generator_components.h"
 #include "imgui.h"
 #include "components/base_components.h"
 
@@ -11,10 +12,6 @@ static const char* s_ditherTypeNames[] = {
 
 static const char* s_pixelStyleNames[] = {
     "Rectangle", "Circle", "Rounded Rect", "Diamond", "CMYK", "RGB", "Halftone"
-};
-
-static const char* s_gradientDirectionNames[] = {
-    "Horizontal", "Vertical", "Diagonal TL-BR", "Diagonal TR-BL", "Radial", "Radial from Corner"
 };
 
 static const char* s_easingTypeNames[] = {
@@ -90,10 +87,22 @@ void registerProperties(ecs::dither_filter_component& c, ComponentInspector& ins
 void registerProperties(ecs::rotate_filter_component& c, ComponentInspector& inspector) {
     inspector.addProperty("Enabled", &c.enabled);
     inspector.addProperty("Order", &c.order);
+    inspector.addProperty("90° Steps", &c.rotate90Count, 0, 3);
+    inspector.addProperty("Flip Horizontal", &c.horizontalMirror);
+    inspector.addProperty("Flip Vertical", &c.verticalMirror);
+    inspector.addProperty("Rotate Canvas", &c.rotateCanvas);
     inspector.addProperty("Angle", &c.angleDegrees, 0.0f, 360.0f, 1.0f);
     inspector.addProperty("90 CW", &c.rotate90CW);
     inspector.addProperty("90 CCW", &c.rotate90CCW);
     inspector.addProperty("180", &c.rotate180);
+}
+
+void registerProperties(ecs::duplicate_filter_component& c, ComponentInspector& inspector) {
+    inspector.addProperty("Enabled", &c.enabled);
+    inspector.addProperty("Order", &c.order);
+    inspector.addProperty("Horz Copies", &c.hCount, 1, 100);
+    inspector.addProperty("Vert Copies", &c.vCount, 1, 100);
+    inspector.addProperty("Mirror", &c.mirror);
 }
 
 void registerProperties(ecs::threshold_filter_component& c, ComponentInspector& inspector) {
@@ -141,25 +150,6 @@ void registerProperties(ecs::edge_detect_filter_component& c, ComponentInspector
     inspector.addProperty("Enabled", &c.enabled);
     inspector.addProperty("Order", &c.order);
     inspector.addProperty("Strength", &c.strength, 0.0f, 1.0f, 0.01f);
-}
-
-void registerProperties(ecs::gradient_generator_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addCustomProperty("Direction", [&c]() {
-        int dir = (int)c.direction;
-        if (ImGui::Combo("##gradDir", &dir, s_gradientDirectionNames, IM_ARRAYSIZE(s_gradientDirectionNames))) {
-            c.direction = (ecs::GradientDirection)dir;
-        }
-    });
-    inspector.addProperty("Steps", &c.numSteps, 2, 256);
-    inspector.addProperty("Start Color", &c.colorStart);
-    inspector.addProperty("End Color", &c.colorEnd);
-    inspector.addCustomProperty("Stops", [&c]() {
-        ImGui::Text("%d stops", (int)c.stops.size());
-        if (ImGui::Button("Add Stop")) {
-            c.stops.emplace_back(0.5f, ofColor::gray);
-        }
-    });
 }
 
 void registerProperties(ecs::dots_generator_component& c, ComponentInspector& inspector) {

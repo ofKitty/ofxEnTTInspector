@@ -220,15 +220,17 @@ public:
             ImGui::PushID(prop.name.empty() ? "row" : prop.name.c_str());
 
             if (prop.name.empty()) {
-                changed |= prop.drawImGui();
+                prop.drawImGui();
             } else {
                 ImGui::AlignTextToFramePadding();
                 ImGui::TextUnformatted(prop.name.c_str());
                 ImGui::SameLine(labelColW);
                 const float widgetW = std::max(ImGui::GetContentRegionAvail().x, 48.f);
                 ImGui::SetNextItemWidth(widgetW);
-                changed |= prop.drawImGui();
+                prop.drawImGui();
             }
+            if (ImGui::IsItemDeactivatedAfterEdit())
+                changed = true;
 
             ImGui::PopID();
         }

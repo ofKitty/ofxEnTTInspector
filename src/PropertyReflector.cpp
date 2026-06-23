@@ -90,7 +90,6 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT(ecs::uv_sample_component)
 
     REFLECT(ecs::swatch_library_component)
-    REFLECT(ecs::color_gradient_component)
     REFLECT(ecs::swatch_palette_ref_component)
 
     REFLECT(ecs::tint_filter_component)
@@ -113,7 +112,6 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT(ecs::line_scan_filter_component)
     REFLECT(ecs::ascii_filter_component)
 
-    REFLECT(ecs::gradient_generator_component)
     REFLECT(ecs::dots_generator_component)
     REFLECT(ecs::stripes_generator_component)
     REFLECT(ecs::checkerboard_generator_component)

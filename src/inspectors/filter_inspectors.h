@@ -22,9 +22,9 @@ void registerProperties(ecs::posterize_filter_component& c, ComponentInspector& 
 void registerProperties(ecs::noise_filter_component& c, ComponentInspector& inspector);
 void registerProperties(ecs::vignette_filter_component& c, ComponentInspector& inspector);
 void registerProperties(ecs::chromatic_aberration_component& c, ComponentInspector& inspector);
+void registerProperties(ecs::duplicate_filter_component& c, ComponentInspector& inspector);
 void registerProperties(ecs::edge_detect_filter_component& c, ComponentInspector& inspector);
 
-void registerProperties(ecs::gradient_generator_component& c, ComponentInspector& inspector);
 void registerProperties(ecs::dots_generator_component& c, ComponentInspector& inspector);
 void registerProperties(ecs::stripes_generator_component& c, ComponentInspector& inspector);
 void registerProperties(ecs::checkerboard_generator_component& c, ComponentInspector& inspector);

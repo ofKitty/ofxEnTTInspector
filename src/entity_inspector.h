@@ -11,6 +11,7 @@
 #include "ComponentInspector.h"
 
 #include <functional>
+#include <vector>
 
 namespace inspector {
 
@@ -23,9 +24,24 @@ inline ExtraEntityInspectorFn& extraEntityInspector()
     return fn;
 }
 
+/// App-level single hook (last setter wins). Prefer addExtraEntityInspector()
+/// for library code so multiple addons can contribute inspectors.
 inline void setExtraEntityInspector(ExtraEntityInspectorFn fn)
 {
     extraEntityInspector() = std::move(fn);
+}
+
+/// Additive list of extra inspectors. Each is invoked for every inspected
+/// entity. Used by library addons (e.g. ofxKit registers paint inspectors).
+inline std::vector<ExtraEntityInspectorFn>& extraEntityInspectors()
+{
+    static std::vector<ExtraEntityInspectorFn> fns;
+    return fns;
+}
+
+inline void addExtraEntityInspector(ExtraEntityInspectorFn fn)
+{
+    extraEntityInspectors().push_back(std::move(fn));
 }
 
 using ecs::node_component;
@@ -73,7 +89,6 @@ using ecs::bezier_curve_component;
 using ecs::spline_component;
 using ecs::sprite_component;
 using ecs::text_2d_component;
-using ecs::gradient_component;
 using ecs::grid_helper_component;
 using ecs::gizmo_component;
 using ecs::bounding_box_component;
@@ -98,9 +113,7 @@ using ecs::trigger_lane_component;
 using ecs::trigger_pattern_component;
 using ecs::trigger_pattern_data_component;
 using ecs::trigger_sequencer_component;
-using ecs::GradientStop;
 using ecs::swatch_library_component;
-using ecs::color_gradient_component;
 using ecs::swatch_palette_ref_component;
 
 // Generic single-component inspector

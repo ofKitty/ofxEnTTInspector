@@ -20,7 +20,6 @@ void registerProperties(ecs::bezier_curve_component& comp, ComponentInspector& i
 void registerProperties(ecs::spline_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::sprite_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::text_2d_component& comp, ComponentInspector& inspector);
-void registerProperties(ecs::gradient_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::grid_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::progress_bar_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::arrow_component& comp, ComponentInspector& inspector);
