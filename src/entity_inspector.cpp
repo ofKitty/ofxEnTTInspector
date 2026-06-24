@@ -123,6 +123,45 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
         changed |= inspectComponent(comp, ecs::getShapeTypeName(comp.type));
     }
 
+    if (registry.any_of<path_component>(entity))
+        changed |= inspectComponent(registry.get<path_component>(entity), "Path");
+
+    if (registry.any_of<polyline_component>(entity))
+        changed |= inspectComponent(registry.get<polyline_component>(entity), "Polyline");
+
+    if (registry.any_of<rectangle_component>(entity))
+        changed |= inspectComponent(registry.get<rectangle_component>(entity), "Rectangle");
+
+    if (registry.any_of<circle_component>(entity))
+        changed |= inspectComponent(registry.get<circle_component>(entity), "Circle");
+
+    if (registry.any_of<ellipse_component>(entity))
+        changed |= inspectComponent(registry.get<ellipse_component>(entity), "Ellipse");
+
+    if (registry.any_of<line_component>(entity))
+        changed |= inspectComponent(registry.get<line_component>(entity), "Line");
+
+    if (registry.any_of<triangle_component>(entity))
+        changed |= inspectComponent(registry.get<triangle_component>(entity), "Triangle");
+
+    if (registry.any_of<polygon_component>(entity))
+        changed |= inspectComponent(registry.get<polygon_component>(entity), "Polygon");
+
+    if (registry.any_of<arc_component>(entity))
+        changed |= inspectComponent(registry.get<arc_component>(entity), "Arc");
+
+    if (registry.any_of<bezier_curve_component>(entity))
+        changed |= inspectComponent(registry.get<bezier_curve_component>(entity), "Bezier Curve");
+
+    if (registry.any_of<spline_component>(entity))
+        changed |= inspectComponent(registry.get<spline_component>(entity), "Spline");
+
+    if (registry.any_of<sprite_component>(entity))
+        changed |= inspectComponent(registry.get<sprite_component>(entity), "Sprite");
+
+    if (registry.any_of<text_2d_component>(entity))
+        changed |= inspectComponent(registry.get<text_2d_component>(entity), "Text 2D");
+
     // ── Utility ──────────────────────────────────────────────────────────────
     if (registry.any_of<grid_helper_component>(entity))
         changed |= inspectComponent(registry.get<grid_helper_component>(entity), "Grid Helper");

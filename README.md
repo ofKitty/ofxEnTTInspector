@@ -12,6 +12,27 @@ ImGui inspector UI for [ofxEnTTKit](https://github.com/ofKitty/ofxEnTTKit) ECS c
 
 ---
 
+## Relationship to ofxKit
+
+In the ofKitty stack, **ofxEnTTInspector owns all component field UI** — every
+scalar/color/enum/path editor for a component lives here, via
+`registerProperties(comp, inspector)`. **ofxKit only hosts** the Properties panel;
+it calls `inspector::inspectEntity(registry, selected)` and draws the result.
+
+Two consequences worth knowing:
+
+- A component is only editable in Properties if it has a `registerProperties`
+  overload **and** is dispatched in
+  [`entity_inspector.cpp`](src/entity_inspector.cpp). Having a `registerProperties`
+  overload is not enough — picker registry ≠ inspector dispatch. When you add a
+  component's UI, dispatch it there too.
+- Spatial manipulation (transforms, path anchors, mesh verts) is **not** a
+  property and does not belong here — that is ofxKit (entity-spatial) or a domain
+  *Kit such as ofxVectorKit (sub-element-spatial). See ofxKit
+  `docs/addon-boundaries.md`.
+
+---
+
 ## Dependencies
 
 | Addon | Why |
