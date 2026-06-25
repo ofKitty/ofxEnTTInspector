@@ -26,3 +26,4 @@
 #include "color_band_inspectors.h"
 #include "trace_inspectors.h"
 #include "code_snippet_inspectors.h"
+#include "paint_inspectors.h"

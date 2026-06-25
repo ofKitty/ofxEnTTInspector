@@ -520,6 +520,17 @@ void registerProperties(ecs::ellipse_component& comp, ComponentInspector& inspec
 // ============================================================================
 
 void registerProperties(ecs::line_component& comp, ComponentInspector& inspector) {
+    // Drag both endpoints together (reference = start), so a line has a single
+    // Position like the other 2D shapes — Start/End below still edit each end.
+    inspector.addCustomProperty("Position", [&]() {
+        glm::vec2 c  = comp.start;
+        glm::vec2 nc = c;
+        if (ImGui::DragFloat2("Position", &nc.x, 1.0f)) {
+            const glm::vec2 d = nc - c;
+            comp.start += d; comp.end += d;
+        }
+    });
+
     inspector.addCustomProperty("Start", [&]() {
         ImGui::DragFloat2("Start", &comp.start.x, 1.0f);
     });
@@ -549,6 +560,18 @@ void registerProperties(ecs::line_component& comp, ComponentInspector& inspector
 // ============================================================================
 
 void registerProperties(ecs::triangle_component& comp, ComponentInspector& inspector) {
+    // Triangles store three absolute vertices (no x/y like rect/circle), so
+    // expose a Position that drags all three points together — keeping parity
+    // with the other 2D shapes. Reference point is the centroid.
+    inspector.addCustomProperty("Position", [&]() {
+        glm::vec2 c  = comp.getCentroid();
+        glm::vec2 nc = c;
+        if (ImGui::DragFloat2("Position", &nc.x, 1.0f)) {
+            const glm::vec2 d = nc - c;
+            comp.p1 += d; comp.p2 += d; comp.p3 += d;
+        }
+    });
+
     inspector.addCustomProperty("Point 1", [&]() {
         ImGui::DragFloat2("P1", &comp.p1.x, 1.0f);
     });
