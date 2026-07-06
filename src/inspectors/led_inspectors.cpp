@@ -56,9 +56,9 @@ void registerProperties(ecs::uv_component& comp, ComponentInspector& inspector,
     inspector.addCustomProperty("Source Canvas", [&comp, &registry]() {
         std::vector<std::pair<entt::entity, std::string>> items;
         items.push_back({entt::null, "(None)"});
-        auto view = registry.view<ecs::fbo_component, ecs::node_component>();
+        auto view = registry.view<ecs::fbo_component, ecs::named_entity>();
         for (auto e : view) {
-            std::string name = registry.get<ecs::node_component>(e).getName();
+            std::string name = registry.get<ecs::named_entity>(e).getName();
             auto& fc = registry.get<ecs::fbo_component>(e);
             if (fc.fbo.isAllocated())
                 name += " (" + std::to_string((int)fc.fbo.getWidth()) + "x" + std::to_string((int)fc.fbo.getHeight()) + ")";
@@ -81,9 +81,9 @@ void registerProperties(ecs::uv_component& comp, ComponentInspector& inspector,
     inspector.addCustomProperty("Drawable", [&comp, &registry, entity]() {
         std::vector<std::pair<entt::entity, std::string>> items;
         items.push_back({entt::null, "(Default: circle)"});
-        for (auto e : registry.view<ecs::node_component>()) {
+        for (auto e : registry.view<ecs::named_entity>()) {
             if (e == entity) continue;
-            std::string name = registry.get<ecs::node_component>(e).getName();
+            std::string name = registry.get<ecs::named_entity>(e).getName();
             bool mesh  = registry.any_of<ecs::mesh_component>(e);
             bool image = registry.any_of<ecs::image_component>(e);
             if (mesh || image) {
@@ -123,8 +123,8 @@ void registerProperties(ecs::uv_sample_component& comp, ComponentInspector& insp
         uvEntities.push_back({entt::null, "(None)"});
         for (auto e : registry.view<ecs::uv_component>()) {
             std::string name = "Entity " + std::to_string(static_cast<uint32_t>(e));
-            if (registry.any_of<ecs::node_component>(e))
-                name = registry.get<ecs::node_component>(e).getName();
+            if (registry.any_of<ecs::named_entity>(e))
+                name = registry.get<ecs::named_entity>(e).getName();
             auto& uv = registry.get<ecs::uv_component>(e);
             name += " (" + std::to_string(uv.getLedCount()) + " LEDs)";
             uvEntities.push_back({e, name});

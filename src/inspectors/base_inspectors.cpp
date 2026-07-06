@@ -11,65 +11,96 @@
 
 namespace inspector {
 
+namespace {
+
+void drawReadOnlyParentId(entt::registry& registry, entt::entity entity)
+{
+    if (registry.any_of<ecs::Relationship>(entity)) {
+        entt::entity p = registry.get<ecs::Relationship>(entity).parent;
+        if (p != entt::null && registry.valid(p) && registry.any_of<ecs::named_entity>(p))
+            ImGui::TextUnformatted(std::to_string(registry.get<ecs::named_entity>(p).getId()).c_str());
+        else if (p != entt::null && registry.valid(p))
+            ImGui::TextUnformatted(std::to_string(static_cast<std::uint32_t>(p)).c_str());
+        else
+            ImGui::TextDisabled("—");
+    } else {
+        ImGui::TextDisabled("—");
+    }
+}
+
+} // namespace
+
 // ============================================================================
-// Node Component Inspector
+// LocalTransform Inspector
 // ============================================================================
 
-void registerProperties(ecs::node_component& comp, ComponentInspector& inspector) {
+void registerProperties(ecs::LocalTransform& comp, ComponentInspector& inspector) {
     inspector.addCustomProperty("Position", [&comp]() {
-        glm::vec3 pos = comp.node.getPosition();
-        if (ImGui::DragFloat3("##Position", (float*)&pos, 1.0f))
-            comp.node.setPosition(pos);
-    });
+        ImGui::DragFloat3("##LocalPosition", &comp.position.x, 1.0f);
+    }, 3);
 
     inspector.addCustomProperty("Rotation", [&comp]() {
         static std::map<void*, glm::vec3> rotStore;
-        auto& rot = rotStore[&comp];
-        if (rot == glm::vec3(0.f)) rot = comp.node.getOrientationEulerDeg();
+        glm::vec3& rot = rotStore[&comp];
+        if (!ImGui::IsAnyItemActive())
+            rot = glm::degrees(glm::eulerAngles(comp.orientation));
 
-        ImGui::Text("X"); ImGui::SameLine(0, 50);
-        ImGui::Text("Y"); ImGui::SameLine(0, 50);
-        ImGui::Text("Z");
+        if (ImGui::DragFloat3("##LocalRotation", &rot.x, 0.5f))
+            comp.orientation = glm::quat(glm::radians(rot));
 
-        ImGui::PushItemWidth(80);
-        bool changed = ImGui::DragFloat("##RotX", &rot.x, 1.f);
-        ImGui::SameLine(); changed |= ImGui::DragFloat("##RotY", &rot.y, 1.f);
-        ImGui::SameLine(); changed |= ImGui::DragFloat("##RotZ", &rot.z, 1.f);
-        ImGui::PopItemWidth();
-
-        if (changed) comp.node.setOrientation(glm::quat(glm::radians(rot)));
-        if (ImGui::Button("Reset Rotation")) {
-            comp.node.setOrientation(glm::quat(1, 0, 0, 0));
+        if (ImGui::Button("Reset Rotation##LocalTransform")) {
+            comp.orientation = glm::quat(1, 0, 0, 0);
             rot = glm::vec3(0.f);
         }
-    });
+    }, 3);
 
     inspector.addCustomProperty("Scale", [&comp]() {
-        glm::vec3 scale = comp.node.getScale();
-        if (ImGui::DragFloat3("Scale", (float*)&scale, 0.01f, 0.01f, 10.f))
-            comp.node.setScale(scale);
-    });
-
-    inspector.addReflectable("node.x",      &comp.cachedPosition.x, -10000, 10000);
-    inspector.addReflectable("node.y",      &comp.cachedPosition.y, -10000, 10000);
-    inspector.addReflectable("node.z",      &comp.cachedPosition.z, -10000, 10000);
-    inspector.addReflectable("node.scaleX", &comp.cachedScale.x,    0.01f,  100);
-    inspector.addReflectable("node.scaleY", &comp.cachedScale.y,    0.01f,  100);
-    inspector.addReflectable("node.scaleZ", &comp.cachedScale.z,    0.01f,  100);
+        ImGui::DragFloat3("##LocalScale", &comp.scale.x, 0.01f, 0.01f, 10.f);
+    }, 3);
 }
 
-void registerProperties(ecs::node_component& comp, ComponentInspector& inspector,
+// ============================================================================
+// skew_component Inspector (degrees; applied as T·R·Shear·S)
+// ============================================================================
+
+void registerProperties(ecs::skew_component& comp, ComponentInspector& inspector) {
+    inspector.addProperty("Skew X", &comp.skewX, -89.f, 89.f, 0.1f);
+    inspector.addProperty("Skew Y", &comp.skewY, -89.f, 89.f, 0.1f);
+}
+
+// ============================================================================
+// Relationship Inspector (read-only parent)
+// ============================================================================
+
+void registerProperties(ecs::Relationship& comp, ComponentInspector& inspector,
                         entt::registry& registry, entt::entity entity) {
-    inspector.addCustomProperty("Node ID", [&comp]() {
+    (void)comp;
+    inspector.addCustomProperty("Parent", [&registry, entity]() {
+        drawReadOnlyParentId(registry, entity);
+    });
+    inspector.addCustomProperty("Children", [&registry, entity]() {
+        if (registry.any_of<ecs::Relationship>(entity))
+            ImGui::Text("%zu", registry.get<ecs::Relationship>(entity).children_count);
+        else
+            ImGui::TextDisabled("—");
+    });
+}
+
+// ============================================================================
+// named_entity Inspector
+// ============================================================================
+
+void registerProperties(ecs::named_entity& comp, ComponentInspector& inspector) {
+    inspector.addProperty("Name", &comp.name);
+}
+
+void registerProperties(ecs::named_entity& comp, ComponentInspector& inspector,
+                        entt::registry& registry, entt::entity entity) {
+    inspector.addCustomProperty("Entity ID", [&comp]() {
         ImGui::TextUnformatted(std::to_string(comp.getId()).c_str());
     });
     inspector.addCustomProperty("Parent ID", [&registry, entity]() {
-        if (registry.any_of<ecs::parent_component>(entity)) {
-            entt::entity p = registry.get<ecs::parent_component>(entity).parent;
-            if (registry.valid(p) && registry.any_of<ecs::node_component>(p))
-                ImGui::TextUnformatted(std::to_string(registry.get<ecs::node_component>(p).getId()).c_str());
-            else ImGui::TextDisabled("—");
-        } else { ImGui::TextDisabled("—"); }
+        drawReadOnlyParentId(registry, entity);
     });
     inspector.addCustomProperty("Entity (runtime)", [entity]() {
         ImGui::TextUnformatted(std::to_string(static_cast<std::uint32_t>(entity)).c_str());
@@ -77,7 +108,10 @@ void registerProperties(ecs::node_component& comp, ComponentInspector& inspector
 
     registerProperties(comp, inspector);
 
-    inspector.addCustomProperty("Origin", [&comp, &registry, entity]() {
+    inspector.addCustomProperty("Origin", [&registry, entity]() {
+        if (!registry.all_of<ecs::LocalTransform>(entity))
+            return;
+
         inspector::TransformOrigin cur = inspector::TransformOrigin::Center;
         if (registry.any_of<inspector::transform_origin_component>(entity))
             cur = registry.get<inspector::transform_origin_component>(entity).origin;
@@ -97,10 +131,9 @@ void registerProperties(ecs::node_component& comp, ComponentInspector& inspector
                 }
                 glm::vec2 oldOff = inspector::getOriginOffset(cur,  w, h);
                 glm::vec2 newOff = inspector::getOriginOffset(next, w, h);
-                glm::vec3 pos = comp.node.getPosition();
-                pos.x += oldOff.x - newOff.x;
-                pos.y += oldOff.y - newOff.y;
-                comp.node.setPosition(pos);
+                auto& lt = registry.get<ecs::LocalTransform>(entity);
+                lt.position.x += oldOff.x - newOff.x;
+                lt.position.y += oldOff.y - newOff.y;
                 if (!registry.any_of<inspector::transform_origin_component>(entity))
                     registry.emplace<inspector::transform_origin_component>(entity);
                 registry.get<inspector::transform_origin_component>(entity).origin = next;
@@ -242,18 +275,18 @@ void registerProperties(ecs::fbo_component& comp, ComponentInspector& inspector,
 void registerProperties(ecs::fbo_reference_component& comp, ComponentInspector& inspector,
                         entt::registry& registry, entt::entity /*entity*/) {
     inspector.addCustomProperty("Source Canvas", [&comp, &registry]() {
-        auto canvases = registry.view<ecs::fbo_component, ecs::node_component>();
+        auto canvases = registry.view<ecs::fbo_component, ecs::named_entity>();
         const char* cur = "None";
         if (comp.sourceEntity != entt::null && registry.valid(comp.sourceEntity))
-            if (registry.any_of<ecs::node_component>(comp.sourceEntity))
-                cur = registry.get<ecs::node_component>(comp.sourceEntity).getName().c_str();
+            if (registry.any_of<ecs::named_entity>(comp.sourceEntity))
+                cur = registry.get<ecs::named_entity>(comp.sourceEntity).getName().c_str();
 
         ImGui::SetNextItemWidth(-1);
         if (ImGui::BeginCombo("##SourceCanvas", cur)) {
             if (ImGui::Selectable("None", comp.sourceEntity == entt::null)) comp.sourceEntity = entt::null;
             ImGui::Separator();
             for (auto e : canvases) {
-                auto& nc = canvases.get<ecs::node_component>(e);
+                auto& nc = canvases.get<ecs::named_entity>(e);
                 bool sel = (e == comp.sourceEntity);
                 if (ImGui::Selectable(nc.getName().c_str(), sel)) comp.sourceEntity = e;
                 if (sel) ImGui::SetItemDefaultFocus();

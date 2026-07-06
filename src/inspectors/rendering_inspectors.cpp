@@ -127,61 +127,6 @@ void registerProperties(ecs::shader_component& comp, ComponentInspector& inspect
 }
 
 // ============================================================================
-// Primitive Component Inspector
-// ============================================================================
-
-void registerProperties(ecs::primitive_component& comp, ComponentInspector& inspector) {
-    inspector.addCustomProperty("Type", [&]() {
-        int currentType = (int)comp.type;
-        if (ImGui::Combo("Type", &currentType, 
-            "Box\0Sphere\0Cylinder\0Cone\0Plane\0Icosphere\0")) {
-            comp.type = (ecs::primitive_component::PrimitiveType)currentType;
-            comp.needsRebuild = true;
-        }
-    });
-    
-    inspector.addProperty("Resolution", &comp.resolution, 3, 100);
-    
-    if (comp.type == ecs::primitive_component::BOX || comp.type == ecs::primitive_component::PLANE) {
-        inspector.addCustomProperty("Size", [&]() {
-            if (ImGui::DragFloat("Width", &comp.width, 1.0f, 1.0f, 1000.0f) ||
-                ImGui::DragFloat("Height", &comp.height, 1.0f, 1.0f, 1000.0f) ||
-                ImGui::DragFloat("Depth", &comp.depth, 1.0f, 1.0f, 1000.0f)) {
-                comp.needsRebuild = true;
-            }
-        });
-    }
-    
-    if (comp.type == ecs::primitive_component::SPHERE || comp.type == ecs::primitive_component::ICOSPHERE) {
-        inspector.addCustomProperty("Radius", [&]() {
-            if (ImGui::DragFloat("Radius", &comp.radius, 1.0f, 1.0f, 500.0f)) {
-                comp.needsRebuild = true;
-            }
-        });
-    }
-    
-    if (comp.type == ecs::primitive_component::CYLINDER || comp.type == ecs::primitive_component::CONE) {
-        inspector.addCustomProperty("Cylinder", [&]() {
-            if (ImGui::DragFloat("Radius Top", &comp.radiusTop, 1.0f, 0.0f, 500.0f) ||
-                ImGui::DragFloat("Radius Bottom", &comp.radiusBottom, 1.0f, 0.0f, 500.0f) ||
-                ImGui::DragFloat("Height", &comp.cylinderHeight, 1.0f, 1.0f, 1000.0f)) {
-                comp.needsRebuild = true;
-            }
-        });
-    }
-    
-    inspector.addCustomProperty("Rebuild", [&]() {
-        if (ImGui::Button("Rebuild Primitive")) {
-            comp.rebuild();
-        }
-        if (comp.needsRebuild) {
-            ImGui::SameLine();
-            ImGui::TextColored(ImVec4(1, 1, 0, 1), "Needs Rebuild");
-        }
-    });
-}
-
-// ============================================================================
 // Texture Component Inspector
 // ============================================================================
 

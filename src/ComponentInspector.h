@@ -13,8 +13,9 @@
 namespace inspector {
 
 struct PropertyInfo {
-    std::string          name;
+    std::string           name;
     std::function<bool()> drawImGui;
+    int                   components {0}; ///< numeric sub-fields (1=scalar, 2/3/4=vecN); 0 = fill column
 };
 
 class ComponentInspector {
@@ -22,13 +23,33 @@ public:
     ComponentInspector(const std::string& componentName)
         : m_componentName(componentName) {}
 
+    // ── Numeric-field sizing standard (app-wide) ─────────────────────────────
+    // Width of numeric drag/input fields, expressed in digits so it tracks the
+    // current font / UI scale. 0 = fill the available column (legacy). ofxKit
+    // drives this from Preferences (AppPrefs::numberFieldDigits). A vecN field is
+    // sized so EACH component is this many digits wide; it never exceeds the
+    // column, so narrow panels gracefully fall back to filling.
+    static void setNumberFieldDigits(int digits) {
+        s_numberFieldDigits = std::max(0, digits);
+    }
+    static int numberFieldDigits() { return s_numberFieldDigits; }
+
+    /// Pixel width for a single numeric field, or 0 when set to "fill column".
+    static float numberFieldWidthPx() {
+        if (s_numberFieldDigits <= 0)
+            return 0.f;
+        const float digitW = ImGui::CalcTextSize("0").x;
+        return digitW * static_cast<float>(s_numberFieldDigits)
+             + ImGui::GetStyle().FramePadding.x * 2.f;
+    }
+
     // ── Typed addProperty overloads (UI + reflection) ────────────────────────
 
     void addProperty(const std::string& name, float* value,
                      float min = 0.f, float max = 100.f, float speed = 1.f) {
         m_properties.push_back({name, [=]() -> bool {
             return ImGui::DragFloat("##", value, speed, min, max);
-        }});
+        }, 1});
         m_reflected.emplace_back(name, PinDataType::Float, value, min, max);
     }
 
@@ -36,7 +57,7 @@ public:
                      int min = 0, int max = 100, int speed = 1) {
         m_properties.push_back({name, [=]() -> bool {
             return ImGui::DragInt("##", value, (float)speed, min, max);
-        }});
+        }, 1});
         m_reflected.emplace_back(name, PinDataType::Int, value, (float)min, (float)max);
     }
 
@@ -78,7 +99,7 @@ public:
                      float min = -FLT_MAX, float max = FLT_MAX, float speed = 1.f) {
         m_properties.push_back({name, [=]() -> bool {
             return ImGui::DragFloat2("##", (float*)value, speed, min, max);
-        }});
+        }, 2});
         m_reflected.emplace_back(name, PinDataType::Vec2, value, min, max);
     }
 
@@ -86,7 +107,7 @@ public:
                      float min = -FLT_MAX, float max = FLT_MAX, float speed = 1.f) {
         m_properties.push_back({name, [=]() -> bool {
             return ImGui::DragFloat3("##", (float*)value, speed, min, max);
-        }});
+        }, 3});
         m_reflected.emplace_back(name, PinDataType::Vec3, value, min, max);
     }
 
@@ -118,7 +139,7 @@ public:
                      float min = -FLT_MAX, float max = FLT_MAX, float speed = 1.f) {
         m_properties.push_back({name, [=]() -> bool {
             return ImGui::DragFloat4("##", (float*)value, speed, min, max);
-        }});
+        }, 4});
         m_reflected.emplace_back(name, PinDataType::Vec4, value, min, max);
     }
 
@@ -130,7 +151,7 @@ public:
                 return true;
             }
             return false;
-        }});
+        }, 3});
         m_reflected.emplace_back(name, PinDataType::Quat, value, -1.f, 1.f);
     }
 
@@ -151,12 +172,15 @@ public:
         m_reflected.emplace_back(name, PinDataType::Int, value, 0.f, (float)(options.size() - 1));
     }
 
-    // UI-only custom widget (no reflection metadata)
-    void addCustomProperty(const std::string& name, std::function<void()> widget) {
+    // UI-only custom widget (no reflection metadata). Pass @p components (1/2/3/4)
+    // when the widget's first item is a numeric drag/input so it participates in
+    // the number-field digit sizing; leave 0 for free-form widgets (fills column).
+    void addCustomProperty(const std::string& name, std::function<void()> widget,
+                           int components = 0) {
         m_properties.push_back({name, [widget]() -> bool {
             widget();
             return ImGui::IsItemDeactivatedAfterEdit();
-        }});
+        }, components});
     }
 
     // ── Data-only reflection (no UI widget) ──────────────────────────────────
@@ -225,7 +249,19 @@ public:
                 ImGui::AlignTextToFramePadding();
                 ImGui::TextUnformatted(prop.name.c_str());
                 ImGui::SameLine(labelColW);
-                const float widgetW = std::max(ImGui::GetContentRegionAvail().x, 48.f);
+
+                const float avail   = std::max(ImGui::GetContentRegionAvail().x, 48.f);
+                float       widgetW = avail;
+                // Numeric fields: size each sub-field to numberFieldDigits, never
+                // exceeding the column (DragFloatN splits item width by component,
+                // separated by ItemInnerSpacing.x).
+                const float perField = numberFieldWidthPx();
+                if (perField > 0.f && prop.components > 0) {
+                    const float gap  = ImGui::GetStyle().ItemInnerSpacing.x;
+                    const float want = perField * prop.components
+                                     + gap * (prop.components - 1);
+                    widgetW = std::min(avail, want);
+                }
                 ImGui::SetNextItemWidth(widgetW);
                 prop.drawImGui();
             }
@@ -264,6 +300,8 @@ private:
     std::string                    m_componentName;
     std::vector<PropertyInfo>      m_properties;
     std::vector<ReflectedProperty> m_reflected;
+
+    inline static int s_numberFieldDigits {0}; ///< 0 = fill column (default)
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

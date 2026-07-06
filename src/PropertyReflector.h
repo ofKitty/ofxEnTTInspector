@@ -78,8 +78,4 @@ private:
 // Returns all reflected properties for an entity.
 std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::entity e);
 
-// Sync helpers for node transform caches (see ComponentInspector.h).
-void pullNodeTransformCaches(entt::registry& reg);
-void pushNodeTransformCaches(entt::registry& reg);
-
 } // namespace inspector

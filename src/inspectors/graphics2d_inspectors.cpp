@@ -3,332 +3,17 @@
 // ============================================================================
 
 #include "graphics2d_inspectors.h"
+#include "VisitFieldsInspector.h"
 #include <cstring>
 
 namespace inspector {
 
-// ============================================================================
-// UNIFIED Shape2D Component Inspector
-// ============================================================================
-
-void registerProperties(ecs::shape2d_component& comp, ComponentInspector& inspector) {
-    inspector.addCustomProperty("Shape Type", [&]() {
-        ImGui::Text("Type: %s", ecs::getShapeTypeName(comp.type));
-    });
-    
-    bool showFillStroke = (comp.type != ecs::Shape2DType::Line && 
-                           comp.type != ecs::Shape2DType::Grid &&
-                           comp.type != ecs::Shape2DType::FlowerOfLife &&
-                           comp.type != ecs::Shape2DType::MetatronsCube);
-    
-    if (showFillStroke) {
-        inspector.addProperty("Filled", &comp.filled);
-        if (comp.filled) {
-            inspector.addProperty("Fill Color", &comp.fillColor);
-        }
-        inspector.addProperty("Stroked", &comp.stroked);
-        if (comp.stroked) {
-            inspector.addProperty("Stroke Color", &comp.strokeColor);
-            inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-        }
-    }
-    
-    switch (comp.type) {
-        case ecs::Shape2DType::Rectangle:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addCustomProperty("Size", [&]() {
-                ImGui::DragFloat("Width", &comp.width, 1.0f, 1.0f, 10000.0f);
-                ImGui::DragFloat("Height", &comp.height, 1.0f, 1.0f, 10000.0f);
-            });
-            inspector.addProperty("Corner Radius", &comp.cornerRadius, 0.0f, 500.0f);
-            break;
-            
-        case ecs::Shape2DType::Circle:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addProperty("Radius", &comp.radius, 1.0f, 10000.0f);
-            inspector.addProperty("Resolution", &comp.resolution, 3, 128);
-            break;
-            
-        case ecs::Shape2DType::Ellipse:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addCustomProperty("Radii", [&]() {
-                ImGui::DragFloat("Radius X", &comp.innerRadius, 1.0f, 1.0f, 10000.0f);
-                ImGui::DragFloat("Radius Y", &comp.outerRadius, 1.0f, 1.0f, 10000.0f);
-            });
-            inspector.addProperty("Resolution", &comp.resolution, 3, 128);
-            break;
-            
-        case ecs::Shape2DType::Line:
-            inspector.addCustomProperty("Start", [&]() {
-                ImGui::DragFloat2("Start", &comp.start.x, 1.0f);
-            });
-            inspector.addCustomProperty("End", [&]() {
-                ImGui::DragFloat2("End", &comp.end.x, 1.0f);
-            });
-            inspector.addProperty("Color", &comp.color);
-            inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
-            break;
-            
-        case ecs::Shape2DType::Triangle:
-            inspector.addCustomProperty("Points", [&]() {
-                ImGui::DragFloat2("P1", &comp.p0.x, 1.0f);
-                ImGui::DragFloat2("P2", &comp.p1.x, 1.0f);
-                ImGui::DragFloat2("P3", &comp.p2.x, 1.0f);
-            });
-            break;
-            
-        case ecs::Shape2DType::Arc:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addProperty("Radius", &comp.radius, 1.0f, 10000.0f);
-            inspector.addCustomProperty("Angles", [&]() {
-                ImGui::DragFloat("Start Angle", &comp.angleStart, 1.0f, 0.0f, 360.0f);
-                ImGui::DragFloat("End Angle", &comp.angleEnd, 1.0f, 0.0f, 360.0f);
-            });
-            inspector.addProperty("Resolution", &comp.resolution, 3, 128);
-            break;
-            
-        case ecs::Shape2DType::Star:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addProperty("Points", &comp.numPoints, 3, 20);
-            inspector.addProperty("Inner Radius", &comp.innerRadius, 1.0f, 500.0f);
-            inspector.addProperty("Outer Radius", &comp.outerRadius, 1.0f, 500.0f);
-            break;
-            
-        case ecs::Shape2DType::Ring:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addProperty("Inner Radius", &comp.innerRadius, 1.0f, 500.0f);
-            inspector.addProperty("Outer Radius", &comp.outerRadius, 1.0f, 500.0f);
-            inspector.addProperty("Resolution", &comp.resolution, 8, 128);
-            break;
-            
-        case ecs::Shape2DType::Cross:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addProperty("Width", &comp.width, 1.0f, 500.0f);
-            inspector.addProperty("Height", &comp.height, 1.0f, 500.0f);
-            inspector.addProperty("Thickness", &comp.thickness, 1.0f, 200.0f);
-            break;
-            
-        case ecs::Shape2DType::Heart:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addProperty("Size", &comp.size, 1.0f, 500.0f);
-            inspector.addProperty("Resolution", &comp.resolution, 8, 128);
-            break;
-            
-        case ecs::Shape2DType::Arrow:
-            inspector.addCustomProperty("Start", [&]() {
-                ImGui::DragFloat2("Start", &comp.start.x, 1.0f);
-            });
-            inspector.addCustomProperty("End", [&]() {
-                ImGui::DragFloat2("End", &comp.end.x, 1.0f);
-            });
-            inspector.addProperty("Color", &comp.color);
-            inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
-            inspector.addProperty("Head Length", &comp.headLength, 1.0f, 100.0f);
-            inspector.addProperty("Head Angle", &comp.headAngle, 0.1f, 1.5f);
-            inspector.addProperty("Double Ended", &comp.doubleEnded);
-            break;
-            
-        case ecs::Shape2DType::RegularPolygon:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addProperty("Sides", &comp.numSides, 3, 20);
-            inspector.addProperty("Radius", &comp.radius, 1.0f, 500.0f);
-            inspector.addProperty("Rotation", &comp.rotation, 0.0f, 360.0f);
-            break;
-            
-        case ecs::Shape2DType::BezierCurve:
-            inspector.addCustomProperty("Control Points", [&]() {
-                ImGui::DragFloat2("P0 (Start)", &comp.p0.x, 1.0f);
-                ImGui::DragFloat2("P1 (Control 1)", &comp.p1.x, 1.0f);
-                ImGui::DragFloat2("P2 (Control 2)", &comp.p2.x, 1.0f);
-                ImGui::DragFloat2("P3 (End)", &comp.p3.x, 1.0f);
-            });
-            inspector.addProperty("Resolution", &comp.resolution, 5, 200);
-            inspector.addProperty("Color", &comp.color);
-            inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
-            inspector.addProperty("Show Control Points", &comp.showControlPoints);
-            break;
-            
-        case ecs::Shape2DType::Spline:
-            inspector.addProperty("Tension", &comp.tension, 0.0f, 1.0f);
-            inspector.addProperty("Resolution", &comp.resolution, 1, 50);
-            inspector.addProperty("Closed", &comp.closed);
-            inspector.addProperty("Color", &comp.color);
-            inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
-            inspector.addProperty("Show Control Points", &comp.showControlPoints);
-            inspector.addCustomProperty("Stats", [&]() {
-                ImGui::Text("Control Points: %zu", comp.controlPoints.size());
-            });
-            break;
-            
-        case ecs::Shape2DType::Path:
-            inspector.addProperty("Curve Resolution", &comp.curveResolution, 5, 200);
-            inspector.addProperty("Closed", &comp.closed);
-            inspector.addCustomProperty("Operations", [&]() {
-                if (ImGui::Button("Close Path")) comp.pathClose();
-                ImGui::SameLine();
-                if (ImGui::Button("Clear")) comp.pathClear();
-            });
-            break;
-            
-        case ecs::Shape2DType::Polyline:
-            inspector.addProperty("Color", &comp.color);
-            inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
-            inspector.addProperty("Closed", &comp.closed);
-            inspector.addProperty("Smoothed", &comp.smoothed);
-            if (comp.smoothed) {
-                inspector.addProperty("Smoothing Size", &comp.smoothingSize, 1.0f, 50.0f);
-                inspector.addProperty("Smoothing Shape", &comp.smoothingShape, 0.0f, 1.0f);
-            }
-            inspector.addCustomProperty("Stats", [&]() {
-                ImGui::Text("Vertices: %zu", comp.polyline.size());
-            });
-            break;
-            
-        case ecs::Shape2DType::Gradient:
-            inspector.addProperty("Color Start", &comp.colorStart);
-            inspector.addProperty("Color End", &comp.colorEnd);
-            inspector.addCustomProperty("Type", [&]() {
-                int type = (int)comp.gradientType;
-                if (ImGui::Combo("Gradient Type", &type, "Linear\0Radial\0")) {
-                    comp.gradientType = (ecs::shape2d_component::GradientType)type;
-                    comp.needsRebuild = true;
-                }
-            });
-            if (comp.gradientType == ecs::shape2d_component::GRADIENT_LINEAR) {
-                inspector.addProperty("Angle", &comp.angle, 0.0f, 360.0f);
-            } else {
-                inspector.addCustomProperty("Center", [&]() {
-                    ImGui::DragFloat2("Center", &comp.center.x, 1.0f);
-                });
-            }
-            inspector.addProperty("Width", &comp.width, 1.0f, 5000.0f);
-            inspector.addProperty("Height", &comp.height, 1.0f, 5000.0f);
-            break;
-            
-        case ecs::Shape2DType::Grid:
-            inspector.addProperty("Width", &comp.width, 1.0f, 10000.0f);
-            inspector.addProperty("Height", &comp.height, 1.0f, 10000.0f);
-            inspector.addProperty("Major Spacing", &comp.majorSpacing, 1.0f, 1000.0f);
-            inspector.addProperty("Minor Spacing", &comp.minorSpacing, 1.0f, 500.0f);
-            inspector.addProperty("Major Line Color", &comp.majorLineColor);
-            inspector.addProperty("Minor Line Color", &comp.minorLineColor);
-            inspector.addProperty("Draw Major Lines", &comp.drawMajorLines);
-            inspector.addProperty("Draw Minor Lines", &comp.drawMinorLines);
-            inspector.addProperty("Draw Axes", &comp.drawAxes);
-            break;
-            
-        case ecs::Shape2DType::ProgressBar:
-            inspector.addProperty("Value", &comp.value, 0.0f, 1.0f);
-            inspector.addProperty("Width", &comp.width, 1.0f, 1000.0f);
-            inspector.addProperty("Height", &comp.height, 1.0f, 200.0f);
-            inspector.addProperty("Corner Radius", &comp.cornerRadius, 0.0f, 50.0f);
-            inspector.addProperty("Background Color", &comp.backgroundColor);
-            inspector.addProperty("Border Color", &comp.borderColor);
-            inspector.addProperty("Show Background", &comp.showBackground);
-            inspector.addProperty("Show Border", &comp.showBorder);
-            inspector.addProperty("Show Text", &comp.showText);
-            break;
-            
-        case ecs::Shape2DType::Text2D:
-            inspector.addCustomProperty("Text", [&]() {
-                static char textBuffer[1024];
-                strncpy(textBuffer, comp.text.c_str(), sizeof(textBuffer) - 1);
-                if (ImGui::InputTextMultiline("##text", textBuffer, sizeof(textBuffer), ImVec2(-1, 60))) {
-                    comp.text = textBuffer;
-                }
-            });
-            inspector.addProperty("Font Size", &comp.fontSize, 8, 200);
-            inspector.addProperty("Color", &comp.color);
-            inspector.addProperty("Line Height", &comp.lineHeight, 0.5f, 3.0f);
-            inspector.addProperty("Letter Spacing", &comp.letterSpacing, -0.5f, 2.0f);
-            inspector.addProperty("Word Wrap", &comp.wordWrap);
-            if (comp.wordWrap) {
-                inspector.addProperty("Wrap Width", &comp.wrapWidth, 50.0f, 2000.0f);
-            }
-            break;
-            
-        case ecs::Shape2DType::VesicaPiscis:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addProperty("Width", &comp.width, 1.0f, 10000.0f);
-            inspector.addProperty("Height", &comp.height, 1.0f, 10000.0f);
-            inspector.addProperty("Resolution", &comp.resolution, 8, 128);
-            inspector.addProperty("Show Construction", &comp.showConstruction);
-            break;
-            
-        case ecs::Shape2DType::FlowerOfLife:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addProperty("Radius", &comp.radius, 1.0f, 500.0f);
-            inspector.addProperty("Rings", &comp.rings, 1, 10);
-            inspector.addProperty("Resolution", &comp.resolution, 8, 128);
-            inspector.addProperty("Color", &comp.color);
-            inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 10.0f);
-            inspector.addProperty("Show Outer Circle", &comp.showOuterCircle);
-            break;
-            
-        case ecs::Shape2DType::MetatronsCube:
-            inspector.addCustomProperty("Position", [&]() {
-                ImGui::DragFloat("X", &comp.x, 1.0f);
-                ImGui::DragFloat("Y", &comp.y, 1.0f);
-            });
-            inspector.addProperty("Inner Radius", &comp.innerRadius, 1.0f, 500.0f);
-            inspector.addProperty("Outer Radius", &comp.outerRadius, 1.0f, 500.0f);
-            inspector.addProperty("Color", &comp.color);
-            inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 10.0f);
-            inspector.addProperty("Show Circles", &comp.showCircles);
-            break;
-            
-        default:
-            inspector.addCustomProperty("Info", [&]() {
-                ImGui::Text("No specific properties for this shape type");
-            });
-            break;
-    }
-}
 
 // ============================================================================
 // Path Component Inspector
 // ============================================================================
 
 void registerProperties(ecs::path_component& comp, ComponentInspector& inspector) {
-    inspector.addProperty("Fill Color", &comp.fillColor);
-    inspector.addProperty("Stroke Color", &comp.strokeColor);
-    inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.0f, 50.0f);
-    
-    inspector.addProperty("Filled", &comp.filled);
-    inspector.addProperty("Stroked", &comp.stroked);
     inspector.addProperty("Closed", &comp.closed);
     
     inspector.addCustomProperty("Path Operations", [&]() {
@@ -366,20 +51,16 @@ void registerProperties(ecs::path_component& comp, ComponentInspector& inspector
     });
 }
 
+void registerProperties(ecs::curve_resolution_component& comp, ComponentInspector& inspector) {
+    registerVisitFields(comp, inspector);
+}
+
 // ============================================================================
 // Polyline Component Inspector
 // ============================================================================
 
 void registerProperties(ecs::polyline_component& comp, ComponentInspector& inspector) {
-    inspector.addProperty("Color", &comp.color);
-    inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
-    inspector.addProperty("Closed", &comp.closed);
-    inspector.addProperty("Smoothed", &comp.smoothed);
-    
-    if (comp.smoothed) {
-        inspector.addProperty("Smoothing Size", &comp.smoothingSize, 1.0f, 50.0f);
-        inspector.addProperty("Smoothing Shape", &comp.smoothingShape, 0.0f, 1.0f);
-    }
+    registerVisitFields(comp, inspector);
     
     inspector.addCustomProperty("Stats", [&]() {
         ImGui::Text("Vertices: %zu", comp.size());
@@ -416,35 +97,7 @@ void registerProperties(ecs::polyline_component& comp, ComponentInspector& inspe
 // ============================================================================
 
 void registerProperties(ecs::rectangle_component& comp, ComponentInspector& inspector) {
-    inspector.addCustomProperty("Position", [&]() {
-        ImGui::DragFloat("X", &comp.x, 1.0f);
-        ImGui::DragFloat("Y", &comp.y, 1.0f);
-    });
-    
-    inspector.addCustomProperty("Size", [&]() {
-        ImGui::DragFloat("Width", &comp.width, 1.0f, 1.0f, 10000.0f);
-        ImGui::DragFloat("Height", &comp.height, 1.0f, 1.0f, 10000.0f);
-    });
-    
-    inspector.addProperty("Corner Radius", &comp.cornerRadius, 0.0f, 500.0f);
-    
-    inspector.addCustomProperty("Rect Mode", [&]() {
-        int mode = (comp.rectMode == OF_RECTMODE_CENTER) ? 1 : 0;
-        if (ImGui::Combo("Mode", &mode, "Corner\0Center\0")) {
-            comp.rectMode = (mode == 1) ? OF_RECTMODE_CENTER : OF_RECTMODE_CORNER;
-        }
-    });
-    
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) {
-        inspector.addProperty("Fill Color", &comp.fillColor);
-    }
-    
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
+    registerVisitFields(comp, inspector);
     
     inspector.addCustomProperty("Info", [&]() {
         auto center = comp.getCenter();
@@ -460,24 +113,7 @@ void registerProperties(ecs::rectangle_component& comp, ComponentInspector& insp
 // ============================================================================
 
 void registerProperties(ecs::circle_component& comp, ComponentInspector& inspector) {
-    inspector.addCustomProperty("Position", [&]() {
-        ImGui::DragFloat("X", &comp.x, 1.0f);
-        ImGui::DragFloat("Y", &comp.y, 1.0f);
-    });
-    
-    inspector.addProperty("Radius", &comp.radius, 1.0f, 10000.0f);
-    inspector.addProperty("Resolution", &comp.resolution, 3, 128);
-    
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) {
-        inspector.addProperty("Fill Color", &comp.fillColor);
-    }
-    
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
+    registerVisitFields(comp, inspector);
     
     inspector.addCustomProperty("Info", [&]() {
         ImGui::Text("Diameter: %.1f", comp.radius * 2);
@@ -491,28 +127,7 @@ void registerProperties(ecs::circle_component& comp, ComponentInspector& inspect
 // ============================================================================
 
 void registerProperties(ecs::ellipse_component& comp, ComponentInspector& inspector) {
-    inspector.addCustomProperty("Position", [&]() {
-        ImGui::DragFloat("X", &comp.x, 1.0f);
-        ImGui::DragFloat("Y", &comp.y, 1.0f);
-    });
-    
-    inspector.addCustomProperty("Radii", [&]() {
-        ImGui::DragFloat("Radius X", &comp.radiusX, 1.0f, 1.0f, 10000.0f);
-        ImGui::DragFloat("Radius Y", &comp.radiusY, 1.0f, 1.0f, 10000.0f);
-    });
-    
-    inspector.addProperty("Resolution", &comp.resolution, 3, 128);
-    
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) {
-        inspector.addProperty("Fill Color", &comp.fillColor);
-    }
-    
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
+    registerVisitFields(comp, inspector);
 }
 
 // ============================================================================
@@ -520,33 +135,7 @@ void registerProperties(ecs::ellipse_component& comp, ComponentInspector& inspec
 // ============================================================================
 
 void registerProperties(ecs::line_component& comp, ComponentInspector& inspector) {
-    // Drag both endpoints together (reference = start), so a line has a single
-    // Position like the other 2D shapes — Start/End below still edit each end.
-    inspector.addCustomProperty("Position", [&]() {
-        glm::vec2 c  = comp.start;
-        glm::vec2 nc = c;
-        if (ImGui::DragFloat2("Position", &nc.x, 1.0f)) {
-            const glm::vec2 d = nc - c;
-            comp.start += d; comp.end += d;
-        }
-    });
-
-    inspector.addCustomProperty("Start", [&]() {
-        ImGui::DragFloat2("Start", &comp.start.x, 1.0f);
-    });
-    
-    inspector.addCustomProperty("End", [&]() {
-        ImGui::DragFloat2("End", &comp.end.x, 1.0f);
-    });
-    
-    inspector.addProperty("Color", &comp.color);
-    inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
-    
-    inspector.addProperty("Arrow", &comp.arrow);
-    if (comp.arrow) {
-        inspector.addProperty("Arrow Size", &comp.arrowSize, 1.0f, 100.0f);
-        inspector.addProperty("Arrow Angle", &comp.arrowAngle, 10.0f, 60.0f);
-    }
+    registerVisitFields(comp, inspector);
     
     inspector.addCustomProperty("Info", [&]() {
         ImGui::Text("Length: %.2f", comp.getLength());
@@ -560,40 +149,7 @@ void registerProperties(ecs::line_component& comp, ComponentInspector& inspector
 // ============================================================================
 
 void registerProperties(ecs::triangle_component& comp, ComponentInspector& inspector) {
-    // Triangles store three absolute vertices (no x/y like rect/circle), so
-    // expose a Position that drags all three points together — keeping parity
-    // with the other 2D shapes. Reference point is the centroid.
-    inspector.addCustomProperty("Position", [&]() {
-        glm::vec2 c  = comp.getCentroid();
-        glm::vec2 nc = c;
-        if (ImGui::DragFloat2("Position", &nc.x, 1.0f)) {
-            const glm::vec2 d = nc - c;
-            comp.p1 += d; comp.p2 += d; comp.p3 += d;
-        }
-    });
-
-    inspector.addCustomProperty("Point 1", [&]() {
-        ImGui::DragFloat2("P1", &comp.p1.x, 1.0f);
-    });
-    
-    inspector.addCustomProperty("Point 2", [&]() {
-        ImGui::DragFloat2("P2", &comp.p2.x, 1.0f);
-    });
-    
-    inspector.addCustomProperty("Point 3", [&]() {
-        ImGui::DragFloat2("P3", &comp.p3.x, 1.0f);
-    });
-    
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) {
-        inspector.addProperty("Fill Color", &comp.fillColor);
-    }
-    
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
+    registerVisitFields(comp, inspector);
     
     inspector.addCustomProperty("Info", [&]() {
         auto centroid = comp.getCentroid();
@@ -607,17 +163,6 @@ void registerProperties(ecs::triangle_component& comp, ComponentInspector& inspe
 // ============================================================================
 
 void registerProperties(ecs::polygon_component& comp, ComponentInspector& inspector) {
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) {
-        inspector.addProperty("Fill Color", &comp.fillColor);
-    }
-    
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
-    
     inspector.addProperty("Convex", &comp.convex);
     
     inspector.addCustomProperty("Stats", [&]() {
@@ -665,17 +210,6 @@ void registerProperties(ecs::arc_component& comp, ComponentInspector& inspector)
     
     inspector.addProperty("Resolution", &comp.resolution, 3, 128);
     
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) {
-        inspector.addProperty("Fill Color", &comp.fillColor);
-    }
-    
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.color);
-        inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
-    }
-    
     inspector.addCustomProperty("Info", [&]() {
         ImGui::Text("Angle Span: %.1f deg", comp.getAngleSpan());
         ImGui::Text("Arc Length: %.2f", comp.getArcLength());
@@ -695,8 +229,6 @@ void registerProperties(ecs::bezier_curve_component& comp, ComponentInspector& i
     });
     
     inspector.addProperty("Resolution", &comp.resolution, 5, 200);
-    inspector.addProperty("Color", &comp.color);
-    inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
     
     inspector.addProperty("Show Control Points", &comp.showControlPoints);
     if (comp.showControlPoints) {
@@ -717,9 +249,6 @@ void registerProperties(ecs::spline_component& comp, ComponentInspector& inspect
     inspector.addProperty("Tension", &comp.tension, 0.0f, 1.0f);
     inspector.addProperty("Resolution", &comp.resolution, 1, 50);
     inspector.addProperty("Closed", &comp.closed);
-    
-    inspector.addProperty("Color", &comp.color);
-    inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
     
     inspector.addProperty("Show Control Points", &comp.showControlPoints);
     if (comp.showControlPoints) {
@@ -893,8 +422,6 @@ void registerProperties(ecs::arrow_component& comp, ComponentInspector& inspecto
     inspector.addCustomProperty("End", [&]() {
         ImGui::DragFloat2("End", &comp.end.x, 1.0f);
     });
-    inspector.addProperty("Color", &comp.color);
-    inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 50.0f);
     inspector.addProperty("Head Length", &comp.headLength, 1.0f, 100.0f);
     inspector.addProperty("Head Angle", &comp.headAngle, 0.1f, 1.5f);
     inspector.addProperty("Double Ended", &comp.doubleEnded);
@@ -910,13 +437,6 @@ void registerProperties(ecs::star_component& comp, ComponentInspector& inspector
     inspector.addProperty("Points", &comp.numPoints, 3, 20);
     inspector.addProperty("Inner Radius", &comp.innerRadius, 1.0f, 500.0f);
     inspector.addProperty("Outer Radius", &comp.outerRadius, 1.0f, 500.0f);
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) inspector.addProperty("Fill Color", &comp.fillColor);
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
 }
 
 // ============================================================================
@@ -929,13 +449,6 @@ void registerProperties(ecs::regular_polygon_component& comp, ComponentInspector
     inspector.addProperty("Sides", &comp.numSides, 3, 20);
     inspector.addProperty("Radius", &comp.radius, 1.0f, 500.0f);
     inspector.addProperty("Rotation", &comp.rotation, 0.0f, 360.0f);
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) inspector.addProperty("Fill Color", &comp.fillColor);
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
 }
 
 // ============================================================================
@@ -948,13 +461,6 @@ void registerProperties(ecs::ring_component& comp, ComponentInspector& inspector
     inspector.addProperty("Inner Radius", &comp.innerRadius, 1.0f, 500.0f);
     inspector.addProperty("Outer Radius", &comp.outerRadius, 1.0f, 500.0f);
     inspector.addProperty("Resolution", &comp.resolution, 8, 128);
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) inspector.addProperty("Fill Color", &comp.fillColor);
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
 }
 
 // ============================================================================
@@ -967,13 +473,6 @@ void registerProperties(ecs::cross_component& comp, ComponentInspector& inspecto
     inspector.addProperty("Width", &comp.width, 1.0f, 500.0f);
     inspector.addProperty("Height", &comp.height, 1.0f, 500.0f);
     inspector.addProperty("Thickness", &comp.thickness, 1.0f, 200.0f);
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) inspector.addProperty("Fill Color", &comp.fillColor);
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
 }
 
 // ============================================================================
@@ -985,13 +484,6 @@ void registerProperties(ecs::heart_component& comp, ComponentInspector& inspecto
     inspector.addProperty("Y", &comp.y);
     inspector.addProperty("Size", &comp.size, 1.0f, 500.0f);
     inspector.addProperty("Resolution", &comp.resolution, 8, 128);
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) inspector.addProperty("Fill Color", &comp.fillColor);
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
 }
 
 // ============================================================================
@@ -1010,17 +502,6 @@ void registerProperties(ecs::vesica_piscis_component& comp, ComponentInspector& 
     });
     
     inspector.addProperty("Resolution", &comp.resolution, 8, 128);
-    
-    inspector.addProperty("Filled", &comp.filled);
-    if (comp.filled) {
-        inspector.addProperty("Fill Color", &comp.fillColor);
-    }
-    
-    inspector.addProperty("Stroked", &comp.stroked);
-    if (comp.stroked) {
-        inspector.addProperty("Stroke Color", &comp.strokeColor);
-        inspector.addProperty("Stroke Width", &comp.strokeWidth, 0.1f, 50.0f);
-    }
     
     inspector.addProperty("Show Construction", &comp.showConstruction);
     
@@ -1041,8 +522,6 @@ void registerProperties(ecs::flower_of_life_component& comp, ComponentInspector&
     inspector.addProperty("Radius", &comp.radius, 1.0f, 500.0f);
     inspector.addProperty("Rings", &comp.rings, 1, 10);
     inspector.addProperty("Resolution", &comp.resolution, 8, 128);
-    inspector.addProperty("Color", &comp.color);
-    inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 10.0f);
     inspector.addProperty("Show Outer Circle", &comp.showOuterCircle);
 }
 
@@ -1051,8 +530,6 @@ void registerProperties(ecs::metatrons_cube_component& comp, ComponentInspector&
     inspector.addProperty("Y", &comp.y);
     inspector.addProperty("Inner Radius", &comp.innerRadius, 1.0f, 500.0f);
     inspector.addProperty("Outer Radius", &comp.outerRadius, 1.0f, 500.0f);
-    inspector.addProperty("Color", &comp.color);
-    inspector.addProperty("Line Width", &comp.lineWidth, 0.1f, 10.0f);
     inspector.addProperty("Show Circles", &comp.showCircles);
 }
 

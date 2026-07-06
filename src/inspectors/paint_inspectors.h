@@ -3,7 +3,7 @@
 // ============================================================================
 // Paint inspectors (ofxEnTTInspector)
 // ============================================================================
-// ImGui editing for the canonical paint components defined in ofxEnTTKit
+// ImGui editing for the paint components defined in ofxEnTTKit
 // (ecs::solid_color_component / gradient_component / fill_component /
 // stroke_component). Gradient editing uses this addon's ImGradientHDR widget.
 //

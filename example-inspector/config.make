@@ -1,1 +1,2 @@
 APPNAME = example-inspector
+

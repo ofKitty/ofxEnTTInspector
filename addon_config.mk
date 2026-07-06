@@ -15,5 +15,7 @@ linuxarmv6l:
 linuxarmv7l:
 linuxaarch64:
 vs:
+	# entity_inspector.cpp exceeds default COFF section limit (C1128).
+	ADDON_CPPFLAGS = /bigobj
 osx:
 ios:

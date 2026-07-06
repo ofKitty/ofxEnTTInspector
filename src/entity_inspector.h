@@ -44,7 +44,7 @@ inline void addExtraEntityInspector(ExtraEntityInspectorFn fn)
     extraEntityInspectors().push_back(std::move(fn));
 }
 
-using ecs::node_component;
+using ecs::named_entity;
 using ecs::render_component;
 using ecs::camera_component;
 using ecs::fbo_component;
@@ -61,7 +61,6 @@ using ecs::filepath_component;
 using ecs::light_component;
 using ecs::material_component;
 using ecs::shader_component;
-using ecs::primitive_component;
 using ecs::texture_component;
 using ecs::cubemap_component;
 using ecs::billboard_component;
@@ -75,8 +74,8 @@ using ecs::glow_component;
 using ecs::tween_component;
 using ecs::particle_emitter_component;
 using ecs::postfx_component;
-using ecs::shape2d_component;
 using ecs::path_component;
+using ecs::curve_resolution_component;
 using ecs::polyline_component;
 using ecs::rectangle_component;
 using ecs::circle_component;

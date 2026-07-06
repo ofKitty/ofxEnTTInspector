@@ -42,12 +42,13 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     ComponentInspector col("_reflect");
     if (!reg.valid(e)) return col.getReflectedProperties();
 
-    REFLECT_CTX(ecs::node_component)
+    REFLECT_CTX(ecs::named_entity)
     REFLECT(ecs::render_component)
     REFLECT(ecs::camera_component)
     REFLECT(ecs::fbo_component)
     REFLECT(ecs::tag_component)
     REFLECT(ecs::selectable_component)
+    REFLECT(ecs::skew_component)
     REFLECT(ecs::mesh_component)
     REFLECT_CTX(ecs::model_component)
     REFLECT_CTX(ecs::image_component)
@@ -56,7 +57,6 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT(ecs::light_component)
     REFLECT(ecs::material_component)
     REFLECT(ecs::shader_component)
-    REFLECT(ecs::primitive_component)
     REFLECT(ecs::texture_component)
     REFLECT(ecs::cubemap_component)
     REFLECT(ecs::billboard_component)
@@ -71,8 +71,6 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT(ecs::tween_component)
     REFLECT(ecs::particle_emitter_component)
     REFLECT(ecs::postfx_component)
-
-    REFLECT(ecs::shape2d_component)
 
     REFLECT(ecs::grid_helper_component)
     REFLECT(ecs::gizmo_component)
@@ -149,18 +147,5 @@ bool ComponentInspector::deserialize(const ofJson& j)
     return anyChanged;
 }
 
-void pullNodeTransformCaches(entt::registry& reg) {
-    for (auto [e, nc] : reg.view<ecs::node_component>().each()) {
-        nc.cachedPosition = nc.node.getPosition();
-        nc.cachedScale    = nc.node.getScale();
-    }
-}
-
-void pushNodeTransformCaches(entt::registry& reg) {
-    for (auto [e, nc] : reg.view<ecs::node_component>().each()) {
-        if (nc.cachedPosition != nc.node.getPosition()) nc.node.setPosition(nc.cachedPosition);
-        if (nc.cachedScale    != nc.node.getScale())    nc.node.setScale(nc.cachedScale);
-    }
-}
 
 } // namespace inspector

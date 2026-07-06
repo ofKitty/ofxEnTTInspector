@@ -9,7 +9,6 @@ namespace inspector {
 void registerProperties(ecs::light_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::material_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::shader_component& comp, ComponentInspector& inspector);
-void registerProperties(ecs::primitive_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::texture_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::trail_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::outline_component& comp, ComponentInspector& inspector);

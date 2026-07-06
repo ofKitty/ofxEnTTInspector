@@ -6,8 +6,8 @@
 
 namespace inspector {
 
-void registerProperties(ecs::shape2d_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::path_component& comp, ComponentInspector& inspector);
+void registerProperties(ecs::curve_resolution_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::polyline_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::rectangle_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::circle_component& comp, ComponentInspector& inspector);

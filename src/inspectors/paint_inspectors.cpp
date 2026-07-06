@@ -11,9 +11,141 @@
 
 #include <algorithm>
 #include <array>
+#include <string>
+#include <vector>
 
 namespace inspector {
 namespace {
+
+entt::entity findPaintLibraryHost(entt::registry& reg)
+{
+	auto view = reg.view<ecs::paint_library_component>();
+	if (view.begin() == view.end())
+		return entt::null;
+	return *view.begin();
+}
+
+entt::entity createPaintSolid(entt::registry& reg, const glm::vec4& color)
+{
+	const entt::entity host = findPaintLibraryHost(reg);
+	if (host != entt::null)
+		return ecs::createLibrarySolidPaint(reg, host, color);
+	return ecs::createSolidPaint(reg, color);
+}
+
+entt::entity createPaintGradient(entt::registry& reg, const std::string& name)
+{
+	const entt::entity host = findPaintLibraryHost(reg);
+	if (host != entt::null)
+		return ecs::createLibraryGradientPaint(reg, host, name);
+	return ecs::createGradientPaint(reg, name);
+}
+
+std::string paintLabel(entt::registry& reg, entt::entity paint)
+{
+    if (paint == entt::null || !reg.valid(paint)) return "(none)";
+    if (reg.any_of<ecs::solid_color_component>(paint)) return "Solid";
+    if (const auto* g = reg.try_get<ecs::gradient_component>(paint))
+        return g->name.empty() ? "Gradient" : g->name;
+    return "Paint";
+}
+
+void drawPaintRef(entt::registry& reg, entt::entity paint) {
+    ImGui::Text("Paint entity: %u", (unsigned)paint);
+    if (paint != entt::null && reg.valid(paint)
+        && reg.any_of<ecs::solid_color_component>(paint)) {
+        auto& sc = reg.get<ecs::solid_color_component>(paint);
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::ColorEdit4("##paintColor", &sc.color.x, ImGuiColorEditFlags_AlphaBar);
+    } else {
+        glm::vec4 c;
+        if (ecs::resolvePaintColor(reg, paint, c)) {
+            ImGui::SameLine();
+            ImGui::ColorButton("##paintPreview", ImVec4(c.x, c.y, c.z, c.w));
+        }
+    }
+}
+
+void paintSelectable(entt::registry& reg, entt::entity pe, entt::entity current,
+                     entt::entity& chosen, const char* fallbackLabel)
+{
+    const bool sel = pe == current;
+    ImGui::PushID(static_cast<int>(pe));
+    const std::string label = paintLabel(reg, pe);
+    if (ImGui::Selectable(label == "Paint" ? fallbackLabel : label.c_str(), sel))
+        chosen = pe;
+    if (reg.any_of<ecs::solid_color_component>(pe)) {
+        const auto& c = reg.get<ecs::solid_color_component>(pe).color;
+        ImGui::SameLine();
+        ImGui::ColorButton("##sw", ImVec4(c.x, c.y, c.z, c.w));
+    }
+    ImGui::PopID();
+}
+
+entt::entity pickPaintEntity(entt::registry& reg, entt::entity current)
+{
+    entt::entity chosen = current;
+    if (ImGui::BeginCombo("##paintPick", paintLabel(reg, current).c_str())) {
+        if (ImGui::Selectable("(none)", current == entt::null))
+            chosen = entt::null;
+
+        const entt::entity host = findPaintLibraryHost(reg);
+        if (host != entt::null)
+            ecs::prunePaintLibrary(reg, host);
+        const auto* docPaints = host != entt::null
+            ? reg.try_get<ecs::paint_library_component>(host)
+            : nullptr;
+
+        if (docPaints && !docPaints->paints.empty()) {
+            ImGui::Separator();
+            ImGui::TextDisabled("Document paints");
+            for (entt::entity pe : docPaints->paints) {
+                if (!reg.valid(pe)) continue;
+                paintSelectable(reg, pe, current, chosen, "Document paint");
+            }
+        }
+
+        ImGui::Separator();
+        ImGui::TextDisabled("All paints");
+        for (auto [pe, sc] : reg.view<ecs::solid_color_component>().each()) {
+            (void)sc;
+            paintSelectable(reg, pe, current, chosen, "Solid##paint");
+        }
+        for (auto [pe, gc] : reg.view<ecs::gradient_component>().each()) {
+            (void)gc;
+            paintSelectable(reg, pe, current, chosen, "Gradient##paint");
+        }
+        ImGui::EndCombo();
+    }
+    return chosen;
+}
+
+void ensureSolidPaint(entt::registry& reg, entt::entity& paintRef)
+{
+    if (paintRef != entt::null && reg.valid(paintRef)
+        && reg.any_of<ecs::solid_color_component>(paintRef))
+        return;
+    paintRef = createPaintSolid(reg, glm::vec4(1.f));
+}
+
+void drawPaintRefEditor(entt::registry& reg, entt::entity& paintRef)
+{
+    if (paintRef == entt::null)
+        ensureSolidPaint(reg, paintRef);
+
+    drawPaintRef(reg, paintRef);
+    if (ImGui::SmallButton("New solid##paint")) {
+        paintRef = createPaintSolid(reg, glm::vec4(1.f));
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("New gradient##paint")) {
+        paintRef = createPaintGradient(reg, "Gradient");
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Clear##paintClr")) paintRef = entt::null;
+    paintRef = pickPaintEntity(reg, paintRef);
+}
 
 // ---------------------------------------------------------------------------
 // Gradient stop editor (ImGradientHDR <-> ecs::gradient_component)
@@ -31,7 +163,7 @@ void drawGradientStops(ecs::gradient_component& g) {
         for (int i = 0; i < n; ++i) {
             const glm::vec4& c = g.stops[i].color;
             std::array<float, 3> rgb = { c.x, c.y, c.z };
-            state.AddColorMarker(g.stops[i].position, rgb, 1.f);
+            state.AddColorMarker(g.stops[i].position, rgb, g.stops[i].intensity);
             state.AddAlphaMarker(g.stops[i].position, c.w);
         }
         if (state.ColorCount == 0) {
@@ -50,7 +182,9 @@ void drawGradientStops(ecs::gradient_component& g) {
         for (int i = 0; i < state.ColorCount; ++i) {
             const auto& m = state.Colors[i];
             float a = state.GetAlpha(m.Position);
-            g.stops.emplace_back(m.Position, glm::vec4(m.Color[0], m.Color[1], m.Color[2], a));
+            g.stops.emplace_back(m.Position,
+                                 glm::vec4(m.Color[0], m.Color[1], m.Color[2], a),
+                                 m.Intensity);
         }
         g.sortStops();
     }
@@ -66,7 +200,8 @@ bool inspectGradient(ecs::gradient_component& g) {
     });
     ci.addCustomProperty("Interpolation", [&g]() {
         int t = (int)g.interp;
-        if (ImGui::Combo("##gradInterp", &t, "RGB\0HSV\0")) g.interp = (ecs::GradientInterpolation)t;
+        if (ImGui::Combo("##gradInterp", &t, "RGB\0HSV\0OkLab\0"))
+            g.interp = (ecs::GradientInterpolation)t;
     });
     ci.addCustomProperty("Spread", [&g]() {
         int t = (int)g.spread;
@@ -102,21 +237,11 @@ bool inspectSolidColor(ecs::solid_color_component& s) {
     return ci.hasProperties() ? ci.draw() : false;
 }
 
-void drawPaintRef(entt::registry& reg, entt::entity paint) {
-    ImGui::Text("Paint entity: %u", (unsigned)paint);
-    glm::vec4 c;
-    if (ecs::resolvePaintColor(reg, paint, c)) {
-        ImGui::SameLine();
-        ImGui::ColorButton("##paintPreview", ImVec4(c.x, c.y, c.z, c.w));
-    }
-}
-
 bool inspectFill(entt::registry& reg, entt::entity e) {
     auto& f = reg.get<ecs::fill_component>(e);
     ComponentInspector ci("Fill");
     ci.addCustomProperty("Paint", [&reg, &f]() {
-        drawPaintRef(reg, f.paint);
-        if (ImGui::SmallButton("Clear##fill")) f.paint = entt::null;
+        drawPaintRefEditor(reg, f.paint);
     });
     return ci.hasProperties() ? ci.draw() : false;
 }
@@ -126,8 +251,43 @@ bool inspectStroke(entt::registry& reg, entt::entity e) {
     ComponentInspector ci("Stroke");
     ci.addProperty("Width", &s.width, 0.0f, 100.0f, 0.1f);
     ci.addCustomProperty("Paint", [&reg, &s]() {
-        drawPaintRef(reg, s.paint);
-        if (ImGui::SmallButton("Clear##stroke")) s.paint = entt::null;
+        drawPaintRefEditor(reg, s.paint);
+    });
+    return ci.hasProperties() ? ci.draw() : false;
+}
+
+bool inspectDocumentPaints(entt::registry& reg, entt::entity e) {
+    auto* lib = reg.try_get<ecs::paint_library_component>(e);
+    if (!lib) return false;
+
+    ecs::prunePaintLibrary(reg, e);
+
+    ComponentInspector ci("Document Paints");
+    ci.addCustomProperty("Library", [&reg, e, lib]() {
+        if (ImGui::SmallButton("New solid##docPaint"))
+            ecs::createLibrarySolidPaint(reg, e, glm::vec4(1.f));
+        ImGui::SameLine();
+        if (ImGui::SmallButton("New gradient##docPaint"))
+            ecs::createLibraryGradientPaint(reg, e, "Gradient");
+
+        for (size_t i = 0; i < lib->paints.size(); ++i) {
+            entt::entity pe = lib->paints[i];
+            if (!reg.valid(pe)) continue;
+            ImGui::PushID(static_cast<int>(pe));
+            ImGui::TextUnformatted(paintLabel(reg, pe).c_str());
+            ImGui::SameLine();
+            if (reg.any_of<ecs::solid_color_component>(pe)) {
+                const auto& c = reg.get<ecs::solid_color_component>(pe).color;
+                ImGui::ColorButton("##dp", ImVec4(c.x, c.y, c.z, c.w));
+                ImGui::SameLine();
+            }
+            if (ImGui::SmallButton("Remove##docPaint")) {
+                ecs::removeLibraryPaint(reg, e, pe);
+            }
+            ImGui::PopID();
+        }
+        if (lib->paints.empty())
+            ImGui::TextDisabled("No document paints yet");
     });
     return ci.hasProperties() ? ci.draw() : false;
 }
@@ -139,13 +299,16 @@ void registerPaintInspectors() {
     if (done) return;
     done = true;
 
-    // Inspector rows (additive — does not clobber the app-level single hook).
     addExtraEntityInspector([](entt::registry& reg, entt::entity e) {
         bool changed = false;
+        changed |= inspectDocumentPaints(reg, e);
         if (reg.any_of<ecs::solid_color_component>(e))
             changed |= inspectSolidColor(reg.get<ecs::solid_color_component>(e));
-        if (reg.any_of<ecs::gradient_component>(e))
-            changed |= inspectGradient(reg.get<ecs::gradient_component>(e));
+        if (reg.any_of<ecs::gradient_component>(e)) {
+            const bool gradChanged = inspectGradient(reg.get<ecs::gradient_component>(e));
+            if (gradChanged) ecs::invalidateGradientMeshCache(reg, e);
+            changed |= gradChanged;
+        }
         if (reg.any_of<ecs::fill_component>(e))
             changed |= inspectFill(reg, e);
         if (reg.any_of<ecs::stroke_component>(e))
@@ -153,7 +316,6 @@ void registerPaintInspectors() {
         return changed;
     });
 
-    // "Add Component" picker rows.
     ecs::registerComponent<ecs::solid_color_component>("Solid Color", "Color");
     ecs::registerComponent<ecs::gradient_component>("Gradient", "Color");
     ecs::registerComponent<ecs::fill_component>("Fill", "Color");

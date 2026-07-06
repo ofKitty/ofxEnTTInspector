@@ -8,9 +8,23 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     bool changed = false;
     ImGui::PushID((int)entity);
 
+    // ── Hierarchy (ofxNode / layers) ─────────────────────────────────────────
+    if (registry.any_of<ecs::LocalTransform>(entity))
+        changed |= inspectComponent(registry.get<ecs::LocalTransform>(entity), "Local Transform");
+
+    if (registry.any_of<ecs::skew_component>(entity))
+        changed |= inspectComponent(registry.get<ecs::skew_component>(entity), "Skew");
+
+    if (registry.any_of<ecs::Relationship>(entity)) {
+        auto& comp = registry.get<ecs::Relationship>(entity);
+        ComponentInspector ci("Relationship");
+        inspector::registerProperties(comp, ci, registry, entity);
+        if (ci.hasProperties()) changed |= ci.draw();
+    }
+
     // ── Base ─────────────────────────────────────────────────────────────────
-    if (registry.any_of<node_component>(entity))
-        changed |= inspectComponent(registry.get<node_component>(entity), registry, entity, "Node");
+    if (registry.any_of<named_entity>(entity))
+        changed |= inspectComponent(registry.get<named_entity>(entity), registry, entity, "Name");
 
     if (registry.any_of<render_component>(entity))
         changed |= inspectComponent(registry.get<render_component>(entity), "Render");
@@ -74,9 +88,6 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     if (registry.any_of<shader_component>(entity))
         changed |= inspectComponent(registry.get<shader_component>(entity), "Shader");
 
-    if (registry.any_of<primitive_component>(entity))
-        changed |= inspectComponent(registry.get<primitive_component>(entity), "Primitive");
-
     if (registry.any_of<texture_component>(entity))
         changed |= inspectComponent(registry.get<texture_component>(entity), "Texture");
 
@@ -118,13 +129,11 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
         changed |= inspectComponent(registry.get<postfx_component>(entity), "PostFX");
 
     // ── 2D Graphics ──────────────────────────────────────────────────────────
-    if (registry.any_of<shape2d_component>(entity)) {
-        auto& comp = registry.get<shape2d_component>(entity);
-        changed |= inspectComponent(comp, ecs::getShapeTypeName(comp.type));
-    }
-
     if (registry.any_of<path_component>(entity))
         changed |= inspectComponent(registry.get<path_component>(entity), "Path");
+
+    if (registry.any_of<curve_resolution_component>(entity))
+        changed |= inspectComponent(registry.get<curve_resolution_component>(entity), "Curve Resolution");
 
     if (registry.any_of<polyline_component>(entity))
         changed |= inspectComponent(registry.get<polyline_component>(entity), "Polyline");

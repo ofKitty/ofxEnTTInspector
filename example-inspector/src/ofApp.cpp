@@ -1,5 +1,8 @@
 #include "ofApp.h"
 
+#include "systems/TransformSystem.h"
+#include "transform_helpers.h"
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ofApp::setup() {
@@ -19,13 +22,26 @@ void ofApp::setup() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+namespace {
+
+void addSpatialEntity(entt::registry& reg,
+                      entt::entity e,
+                      const std::string& name,
+                      const glm::vec3& position)
+{
+    reg.emplace<ecs::Relationship>(e);
+    reg.emplace<ecs::LocalTransform>(e, ecs::LocalTransform{.position = position});
+    reg.emplace<ecs::GlobalTransform>(e);
+    reg.emplace<ecs::named_entity>(e, name);
+}
+
+} // namespace
+
 void ofApp::createDemoEntities() {
     // Entity 1 — Box mesh
     {
         auto e = registry.create();
-        auto& node = registry.emplace<ecs::node_component>(e);
-        node.node.setPosition(glm::vec3(-150, 0, 0));
-        node.node.setName("Box");
+        addSpatialEntity(registry, e, "Box", {-150.f, 0.f, 0.f});
 
         auto& tag = registry.emplace<ecs::tag_component>(e);
         tag.tag = "mesh";
@@ -45,9 +61,7 @@ void ofApp::createDemoEntities() {
     // Entity 2 — Sphere
     {
         auto e = registry.create();
-        auto& node = registry.emplace<ecs::node_component>(e);
-        node.node.setPosition(glm::vec3(150, 0, 0));
-        node.node.setName("Sphere");
+        addSpatialEntity(registry, e, "Sphere", {150.f, 0.f, 0.f});
 
         auto& mesh = registry.emplace<ecs::mesh_component>(e);
         mesh.primitiveType = ecs::MESH_SPHERE;
@@ -61,16 +75,16 @@ void ofApp::createDemoEntities() {
     // Entity 3 — 2D Circle shape
     {
         auto e = registry.create();
-        auto& node = registry.emplace<ecs::node_component>(e);
-        node.node.setPosition(glm::vec3(0, 180, 0));
-        node.node.setName("Circle");
+        addSpatialEntity(registry, e, "Circle", {0.f, 180.f, 0.f});
 
-        auto& shape = registry.emplace<ecs::shape2d_component>(e);
-        shape.type = ecs::Shape2DType::Circle;
-        shape.fillColor = ofColor(100, 220, 140);
-        shape.strokeColor = ofColor(255);
-        shape.strokeWidth = 2;
-        shape.radius = 50;
+        auto& circle = registry.emplace<ecs::circle_component>(e);
+        circle.x = 0;
+        circle.y = 0;
+        circle.radius = 50;
+        ecs::attachShapePaint(registry, e, ecs::ShapePaintParams{
+            true, true,
+            ofColor(100, 220, 140), ofColor(255), 2.f
+        });
 
         registry.emplace<ecs::render_component>(e).visible = true;
     }
@@ -78,26 +92,29 @@ void ofApp::createDemoEntities() {
     // Entity 4 — Tagged camera stand-in
     {
         auto e = registry.create();
-        auto& node = registry.emplace<ecs::node_component>(e);
-        node.node.setPosition(glm::vec3(0, -180, 200));
-        node.node.setName("Camera");
+        addSpatialEntity(registry, e, "Camera", {0.f, -180.f, 200.f});
 
         auto& tag = registry.emplace<ecs::tag_component>(e);
         tag.tag = "camera";
 
         registry.emplace<ecs::camera_component>(e);
     }
+
+    ecs::TransformSystem::update(registry);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ofApp::update() {
-    // Rotate mesh entities each frame
-    for (auto [e, node, mesh] : registry.view<ecs::node_component, ecs::mesh_component>().each()) {
-        auto& n = node.node;
-        n.rotateDeg(0.4f, glm::vec3(0, 1, 0));
-        n.rotateDeg(0.2f, glm::vec3(1, 0, 0));
+    for (auto [e, lt, mesh] : registry.view<ecs::LocalTransform, ecs::mesh_component>().each()) {
+        (void)e;
+        (void)mesh;
+        const glm::quat yaw   = glm::angleAxis(glm::radians(0.4f), glm::vec3(0, 1, 0));
+        const glm::quat pitch = glm::angleAxis(glm::radians(0.2f), glm::vec3(1, 0, 0));
+        lt.orientation = glm::normalize(yaw * pitch * lt.orientation);
     }
+
+    ecs::TransformSystem::update(registry);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -141,11 +158,11 @@ void ofApp::renderScene() {
     cam.begin();
     ofEnableDepthTest();
 
-    for (auto [e, node, mesh, render] :
-         registry.view<ecs::node_component, ecs::mesh_component, ecs::render_component>().each()) {
-        if (!render.visible) continue;
+    for (auto [e, mesh, render] :
+         registry.view<ecs::mesh_component, ecs::render_component>().each()) {
+        if (!render.visible || !ecs::hasSpatialTransform(registry, e)) continue;
         ofPushMatrix();
-        ofMultMatrix(node.node.getGlobalTransformMatrix());
+        ofMultMatrix(ecs::entityWorldMatrix(registry, e));
         ofSetColor(mesh.color);
         if (mesh.drawFaces)     mesh.m_mesh.draw();
         if (mesh.drawWireframe) mesh.m_mesh.drawWireframe();
@@ -168,15 +185,14 @@ void ofApp::drawScenePanel() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    for (auto e : registry.view<ecs::node_component>()) {
-        auto& node = registry.get<ecs::node_component>(e);
-        std::string label = node.node.getName();
+    for (auto e : registry.view<ecs::named_entity>()) {
+        const auto& ne = registry.get<ecs::named_entity>(e);
+        std::string label = ne.getName();
         if (label.empty()) label = "Entity " + std::to_string((uint32_t)e);
 
-        // Icon hint by components present
         if (registry.any_of<ecs::mesh_component>(e))        label = "[ ] " + label;
-        else if (registry.any_of<ecs::shape2d_component>(e)) label = "( ) " + label;
-        else if (registry.any_of<ecs::camera_component>(e))  label = "[C] " + label;
+        else if (registry.any_of<ecs::circle_component>(e)) label = "( ) " + label;
+        else if (registry.any_of<ecs::camera_component>(e)) label = "[C] " + label;
 
         bool isSel = (e == selected);
         ImGui::PushID((int)e);
@@ -189,7 +205,7 @@ void ofApp::drawScenePanel() {
     ImGui::Separator();
     ImGui::Spacing();
     ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.5f, 1.f),
-                       "%d entities", (int)registry.view<ecs::node_component>().size());
+                       "%d entities", (int)registry.view<ecs::named_entity>().size());
 
     ImGui::End();
 }
@@ -230,9 +246,8 @@ void ofApp::drawPropertiesPanel() {
         return;
     }
 
-    // Entity header
-    if (registry.any_of<ecs::node_component>(selected)) {
-        std::string name = registry.get<ecs::node_component>(selected).node.getName();
+    if (registry.any_of<ecs::named_entity>(selected)) {
+        const std::string& name = registry.get<ecs::named_entity>(selected).getName();
         ImGui::TextColored(ImVec4(0.4f, 0.75f, 1.f, 1.f), "%s", name.c_str());
     }
     ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.5f, 1.f),
@@ -240,7 +255,6 @@ void ofApp::drawPropertiesPanel() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    // The inspector — one call does everything
     inspector::inspectEntity(registry, selected);
 
     ImGui::End();

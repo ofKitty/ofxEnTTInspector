@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxImGui.h"
 #include "ofxEnTTInspector.h"
+#include "systems/shape_paint_helpers.h"
 
 class ofApp : public ofBaseApp {
 public:
