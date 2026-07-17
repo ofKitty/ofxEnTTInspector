@@ -15,7 +15,8 @@ void registerProperties(ecs::mod_binding_component& binding, ComponentInspector&
     inspector.addProperty("Min", &binding.min);
     inspector.addProperty("Max", &binding.max);
     inspector.addProperty("Additive", &binding.additive);
-    
+    inspector.addProperty("Target Key", &binding.targetKey);
+
     inspector.addCustomProperty("Status", [&binding]() {
         if (binding.isValid()) {
             ImGui::TextColored(ImVec4(0, 1, 0, 1), "Bound");
@@ -24,6 +25,8 @@ void registerProperties(ecs::mod_binding_component& binding, ComponentInspector&
         } else {
             ImGui::TextColored(ImVec4(1, 0.5f, 0, 1), "Unbound");
         }
+        if (binding.targetEntity != entt::null)
+            ImGui::Text("Entity: %u", static_cast<std::uint32_t>(binding.targetEntity));
     });
 }
 

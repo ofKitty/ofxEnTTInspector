@@ -4,6 +4,7 @@
 // ============================================================================
 
 #include "base_inspectors.h"
+#include "VisitFieldsInspector.h"
 #include "ofxImGuiFileDialog.h"
 #include "ofMain.h"
 #include <map>
@@ -64,8 +65,7 @@ void registerProperties(ecs::LocalTransform& comp, ComponentInspector& inspector
 // ============================================================================
 
 void registerProperties(ecs::skew_component& comp, ComponentInspector& inspector) {
-    inspector.addProperty("Skew X", &comp.skewX, -89.f, 89.f, 0.1f);
-    inspector.addProperty("Skew Y", &comp.skewY, -89.f, 89.f, 0.1f);
+    registerVisitFields(comp, inspector);
 }
 
 // ============================================================================
@@ -340,9 +340,7 @@ void registerProperties(ecs::camera_component& comp, ComponentInspector& inspect
 // ============================================================================
 
 void registerProperties(ecs::render_component& comp, ComponentInspector& inspector) {
-    inspector.addProperty("Render Order", &comp.order, -1000, 1000);
-    inspector.addProperty("Enable Lighting", &comp.enableLighting);
-    inspector.addProperty("Visible", &comp.visible);
+    registerVisitFields(comp, inspector);
 }
 
 // ============================================================================

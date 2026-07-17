@@ -3,6 +3,7 @@
 // ============================================================================
 
 #include "utility_inspectors.h"
+#include "VisitFieldsInspector.h"
 
 namespace inspector {
 
@@ -197,11 +198,7 @@ void registerProperties(ecs::rigidbody_component& comp, ComponentInspector& insp
 // ============================================================================
 
 void registerProperties(ecs::layer_component& comp, ComponentInspector& inspector) {
-    inspector.addProperty("Name", &comp.name);
-    inspector.addProperty("Index", &comp.index, 0, 9999);
-    inspector.addProperty("Visible", &comp.visible);
-    inspector.addProperty("Locked", &comp.locked);
-    inspector.addProperty("Colour", &comp.color);
+    registerVisitFields(comp, inspector);
 }
 
 } // namespace inspector

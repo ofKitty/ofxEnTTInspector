@@ -1,4 +1,5 @@
 #include "filter_inspectors.h"
+#include "VisitFieldsInspector.h"
 #include "components/generator_components.h"
 #include "imgui.h"
 #include "components/base_components.h"
@@ -29,45 +30,23 @@ static const char* s_easingTypeNames[] = {
 };
 
 void registerProperties(ecs::tint_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Color", &c.color);
-    inspector.addProperty("Strength", &c.strength, 0.0f, 1.0f, 0.01f);
-    inspector.addProperty("Convert to Grey", &c.convertToGrey);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::invert_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Invert RGB", &c.invertRGB);
-    inspector.addProperty("Invert Alpha", &c.invertAlpha);
-    inspector.addProperty("Strength", &c.strength, 0.0f, 1.0f, 0.01f);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::mirror_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Horizontal", &c.horizontal);
-    inspector.addProperty("Vertical", &c.vertical);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::color_adjust_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Brightness", &c.brightness, -1.0f, 1.0f);
-    inspector.addProperty("Contrast", &c.contrast, 0.0f, 2.0f);
-    inspector.addProperty("Saturation", &c.saturation, 0.0f, 2.0f);
-    inspector.addProperty("Gamma", &c.gamma, 0.1f, 3.0f);
-    inspector.addProperty("Hue Shift", &c.hueShift, 0.0f, 360.0f);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::blur_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Radius", &c.radius, 0.0f, 50.0f);
-    inspector.addProperty("Passes", &c.passes, 1, 10);
-    inspector.addProperty("Horizontal", &c.horizontal);
-    inspector.addProperty("Vertical", &c.vertical);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::dither_filter_component& c, ComponentInspector& inspector) {
@@ -85,71 +64,35 @@ void registerProperties(ecs::dither_filter_component& c, ComponentInspector& ins
 }
 
 void registerProperties(ecs::rotate_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("90° Steps", &c.rotate90Count, 0, 3);
-    inspector.addProperty("Flip Horizontal", &c.horizontalMirror);
-    inspector.addProperty("Flip Vertical", &c.verticalMirror);
-    inspector.addProperty("Rotate Canvas", &c.rotateCanvas);
-    inspector.addProperty("Angle", &c.angleDegrees, 0.0f, 360.0f, 1.0f);
-    inspector.addProperty("90 CW", &c.rotate90CW);
-    inspector.addProperty("90 CCW", &c.rotate90CCW);
-    inspector.addProperty("180", &c.rotate180);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::duplicate_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Horz Copies", &c.hCount, 1, 100);
-    inspector.addProperty("Vert Copies", &c.vCount, 1, 100);
-    inspector.addProperty("Mirror", &c.mirror);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::threshold_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Threshold", &c.threshold, 0.0f, 1.0f, 0.01f);
-    inspector.addProperty("Invert", &c.invert);
-    inspector.addProperty("Low Color", &c.lowColor);
-    inspector.addProperty("High Color", &c.highColor);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::posterize_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Levels", &c.levels, 2, 256);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::noise_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Amount", &c.amount, 0.0f, 1.0f, 0.01f);
-    inspector.addProperty("Monochrome", &c.monochrome);
-    inspector.addProperty("Animated", &c.animated);
-    inspector.addProperty("Seed", &c.seed);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::vignette_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Radius", &c.radius, 0.0f, 1.0f, 0.01f);
-    inspector.addProperty("Softness", &c.softness, 0.0f, 1.0f, 0.01f);
-    inspector.addProperty("Strength", &c.strength, 0.0f, 1.0f, 0.01f);
-    inspector.addProperty("Color", &c.color);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::chromatic_aberration_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Amount", &c.amount, 0.0f, 20.0f);
-    inspector.addProperty("Angle", &c.angle, 0.0f, 360.0f);
-    inspector.addProperty("Radial", &c.radial);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::edge_detect_filter_component& c, ComponentInspector& inspector) {
-    inspector.addProperty("Enabled", &c.enabled);
-    inspector.addProperty("Order", &c.order);
-    inspector.addProperty("Strength", &c.strength, 0.0f, 1.0f, 0.01f);
+    registerVisitFields(c, inspector);
 }
 
 void registerProperties(ecs::dots_generator_component& c, ComponentInspector& inspector) {

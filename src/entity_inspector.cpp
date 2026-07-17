@@ -171,6 +171,42 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     if (registry.any_of<text_2d_component>(entity))
         changed |= inspectComponent(registry.get<text_2d_component>(entity), "Text 2D");
 
+    if (registry.any_of<star_component>(entity))
+        changed |= inspectComponent(registry.get<star_component>(entity), "Star");
+
+    if (registry.any_of<regular_polygon_component>(entity))
+        changed |= inspectComponent(registry.get<regular_polygon_component>(entity), "Regular Polygon");
+
+    if (registry.any_of<ring_component>(entity))
+        changed |= inspectComponent(registry.get<ring_component>(entity), "Ring");
+
+    if (registry.any_of<cross_component>(entity))
+        changed |= inspectComponent(registry.get<cross_component>(entity), "Cross");
+
+    if (registry.any_of<heart_component>(entity))
+        changed |= inspectComponent(registry.get<heart_component>(entity), "Heart");
+
+    if (registry.any_of<vesica_piscis_component>(entity))
+        changed |= inspectComponent(registry.get<vesica_piscis_component>(entity), "Vesica Piscis");
+
+    if (registry.any_of<flower_of_life_component>(entity))
+        changed |= inspectComponent(registry.get<flower_of_life_component>(entity), "Flower of Life");
+
+    if (registry.any_of<metatrons_cube_component>(entity))
+        changed |= inspectComponent(registry.get<metatrons_cube_component>(entity), "Metatron's Cube");
+
+    if (registry.any_of<soft_mask_component>(entity))
+        changed |= inspectComponent(registry.get<soft_mask_component>(entity), "Soft Mask");
+
+    if (registry.any_of<grid_component>(entity))
+        changed |= inspectComponent(registry.get<grid_component>(entity), "Grid");
+
+    if (registry.any_of<progress_bar_component>(entity))
+        changed |= inspectComponent(registry.get<progress_bar_component>(entity), "Progress Bar");
+
+    if (registry.any_of<arrow_component>(entity))
+        changed |= inspectComponent(registry.get<arrow_component>(entity), "Arrow");
+
     // ── Utility ──────────────────────────────────────────────────────────────
     if (registry.any_of<grid_helper_component>(entity))
         changed |= inspectComponent(registry.get<grid_helper_component>(entity), "Grid Helper");
@@ -263,6 +299,8 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     INSPECT_FILTER(noise_generator_component,        "Noise Generator")
 
     // ── Modulators ───────────────────────────────────────────────────────────
+    INSPECT_FILTER(modulator_component,              "Modulator")
+    INSPECT_FILTER(mod_binding_component,            "Mod Binding")
     INSPECT_FILTER(eased_pulse_component,            "Eased Pulse")
     INSPECT_FILTER(state_preset_component,           "State Preset")
     INSPECT_FILTER(state_library_component,          "State Library")

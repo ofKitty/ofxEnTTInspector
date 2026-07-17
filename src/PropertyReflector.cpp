@@ -72,6 +72,33 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT(ecs::particle_emitter_component)
     REFLECT(ecs::postfx_component)
 
+    REFLECT(ecs::path_component)
+    REFLECT(ecs::curve_resolution_component)
+    REFLECT(ecs::polyline_component)
+    REFLECT(ecs::rectangle_component)
+    REFLECT(ecs::circle_component)
+    REFLECT(ecs::ellipse_component)
+    REFLECT(ecs::line_component)
+    REFLECT(ecs::triangle_component)
+    REFLECT(ecs::polygon_component)
+    REFLECT(ecs::arc_component)
+    REFLECT(ecs::bezier_curve_component)
+    REFLECT(ecs::spline_component)
+    REFLECT(ecs::sprite_component)
+    REFLECT(ecs::text_2d_component)
+    REFLECT(ecs::star_component)
+    REFLECT(ecs::regular_polygon_component)
+    REFLECT(ecs::ring_component)
+    REFLECT(ecs::cross_component)
+    REFLECT(ecs::heart_component)
+    REFLECT(ecs::vesica_piscis_component)
+    REFLECT(ecs::flower_of_life_component)
+    REFLECT(ecs::metatrons_cube_component)
+    REFLECT(ecs::soft_mask_component)
+    REFLECT(ecs::grid_component)
+    REFLECT(ecs::progress_bar_component)
+    REFLECT(ecs::arrow_component)
+
     REFLECT(ecs::grid_helper_component)
     REFLECT(ecs::gizmo_component)
     REFLECT(ecs::bounding_box_component)
@@ -116,6 +143,8 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT(ecs::noise_generator_component)
 
     REFLECT(ecs::eased_pulse_component)
+    REFLECT(ecs::modulator_component)
+    REFLECT(ecs::mod_binding_component)
 
     #undef REFLECT
     #undef REFLECT_CTX
