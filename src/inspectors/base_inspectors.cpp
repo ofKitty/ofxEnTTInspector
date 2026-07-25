@@ -7,6 +7,7 @@
 #include "VisitFieldsInspector.h"
 #include "ofxImGuiFileDialog.h"
 #include "ofMain.h"
+#include <cstdio>
 #include <map>
 #include <fstream>
 
@@ -356,7 +357,24 @@ void registerProperties(ecs::selectable_component& comp, ComponentInspector& ins
 // ============================================================================
 
 void registerProperties(ecs::tag_component& comp, ComponentInspector& inspector) {
-    inspector.addProperty("Tag", &comp.tag);
+    inspector.addCustomProperty("Tags", [&comp]() {
+        for (size_t i = 0; i < comp.tags.size(); ++i) {
+            ImGui::PushID(static_cast<int>(i));
+            char buf[256];
+            std::snprintf(buf, sizeof(buf), "%s", comp.tags[i].c_str());
+            if (ImGui::InputText("##tag", buf, sizeof(buf)))
+                comp.tags[i] = buf;
+            ImGui::SameLine();
+            if (ImGui::SmallButton("-")) {
+                comp.tags.erase(comp.tags.begin() + static_cast<std::ptrdiff_t>(i));
+                ImGui::PopID();
+                break;
+            }
+            ImGui::PopID();
+        }
+        if (ImGui::SmallButton("+ Add tag"))
+            comp.tags.emplace_back();
+    });
 }
 
 // ============================================================================

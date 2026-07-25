@@ -43,8 +43,7 @@ void ofApp::createDemoEntities() {
         auto e = registry.create();
         addSpatialEntity(registry, e, "Box", {-150.f, 0.f, 0.f});
 
-        auto& tag = registry.emplace<ecs::tag_component>(e);
-        tag.tag = "mesh";
+        registry.emplace<ecs::tag_component>(e, "mesh");
 
         auto& mesh = registry.emplace<ecs::mesh_component>(e);
         mesh.primitiveType = ecs::MESH_BOX;
@@ -94,8 +93,7 @@ void ofApp::createDemoEntities() {
         auto e = registry.create();
         addSpatialEntity(registry, e, "Camera", {0.f, -180.f, 200.f});
 
-        auto& tag = registry.emplace<ecs::tag_component>(e);
-        tag.tag = "camera";
+        registry.emplace<ecs::tag_component>(e, "camera");
 
         registry.emplace<ecs::camera_component>(e);
     }

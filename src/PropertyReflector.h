@@ -1,5 +1,9 @@
 #pragma once
 
+// Pull OF constants first so imgui's imconfig.h (via PinDataTypes) and ofJson
+// share one ofConstants include path — mixed D:/ vs /d/ paths break #pragma once
+// and re-define ofTargetPlatform.
+#include "ofConstants.h"
 #include "PinDataTypes.h"
 #include "ofColor.h"
 #include "ofJson.h"
