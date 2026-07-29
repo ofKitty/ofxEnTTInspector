@@ -1,147 +1,41 @@
-// ============================================================================
-// Hardware Component Inspectors - Implementation
-// ============================================================================
-
 #include "hardware_inspectors.h"
+#include "VisitFieldsInspector.h"
 
 namespace inspector {
 
-// ============================================================================
-// Serial Component Inspector
-// ============================================================================
-
 void registerProperties(ecs::serial_component& comp, ComponentInspector& inspector) {
-    inspector.addProperty("Device Path", &comp.devicePath);
-    inspector.addProperty("Baud Rate", &comp.baudRate, 300, 115200);
-    inspector.addProperty("Connected", &comp.connected);
-    inspector.addProperty("Auto Reconnect", &comp.autoReconnect);
-    
-    if (comp.autoReconnect) {
-        inspector.addProperty("Reconnect Interval", &comp.reconnectInterval, 1.0f, 60.0f);
-    }
-    
-    inspector.addCustomProperty("Connection", [&]() {
-        if (!comp.connected) {
-            if (ImGui::Button("Connect")) {
-                if (comp.serial.setup(comp.devicePath, comp.baudRate)) {
-                    comp.connected = true;
-                }
-            }
-            
-            ImGui::Text("Available Devices:");
-            auto devices = comp.listDevices();
-            for (const auto& device : devices) {
-                if (ImGui::Selectable(device.c_str())) {
-                    comp.devicePath = device;
-                }
-            }
-        } else {
-            ImGui::TextColored(ImVec4(0, 1, 0, 1), "Connected");
-            ImGui::SameLine();
-            if (ImGui::Button("Disconnect")) {
-                comp.serial.close();
-                comp.connected = false;
-            }
-            
-            ImGui::Text("Available bytes: %d", comp.available());
-        }
-    });
-    
-    inspector.addCustomProperty("Send", [&]() {
-        static char sendBuffer[256] = "";
-        ImGui::InputText("Message", sendBuffer, 256);
-        if (ImGui::Button("Send")) {
-            if (comp.connected) {
-                std::string data(sendBuffer);
-                comp.serial.writeBytes((unsigned char*)data.c_str(), data.size());
-            }
-        }
-        
-        ImGui::SameLine();
-        static int byteToSend = 0;
-        ImGui::SetNextItemWidth(60);
-        ImGui::InputInt("##byte", &byteToSend, 0, 0);
-        ImGui::SameLine();
-        if (ImGui::Button("Send Byte")) {
-            if (comp.connected) {
-                comp.serial.writeByte((unsigned char)byteToSend);
-            }
-        }
-    });
+	registerVisitFields(comp, inspector);
 }
-
-// ============================================================================
-// OSC Component Inspector
-// ============================================================================
 
 void registerProperties(ecs::osc_component& comp, ComponentInspector& inspector) {
-    inspector.addProperty("Send Host", &comp.sendHost);
-    inspector.addProperty("Send Port", &comp.sendPort, 1, 65535);
-    inspector.addProperty("Receive Port", &comp.receivePort, 1, 65535);
-    inspector.addProperty("Send Enabled", &comp.sendEnabled);
-    inspector.addProperty("Receive Enabled", &comp.receiveEnabled);
-    
-    inspector.addCustomProperty("Setup", [&]() {
-        if (ImGui::Button("Enable Sender")) {
-            comp.sendEnabled = true;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Enable Receiver")) {
-            comp.receiveEnabled = true;
-        }
-    });
-    
-    inspector.addCustomProperty("Send Message", [&]() {
-        static char address[128] = "/test";
-        static float floatValue = 0.0f;
-        static int intValue = 0;
-        static char stringValue[256] = "hello";
-        
-        ImGui::InputText("Address", address, 128);
-        
-        ImGui::DragFloat("Float", &floatValue);
-        if (ImGui::Button("Send Float")) {
-            ecs::osc_component::OSCMessage msg;
-            msg.address = address;
-            msg.type = ecs::osc_component::OSCMessage::FLOAT;
-            msg.floatValue = floatValue;
-            comp.messageQueue.push_back(msg);
-        }
-        
-        ImGui::InputInt("Int", &intValue);
-        if (ImGui::Button("Send Int")) {
-            ecs::osc_component::OSCMessage msg;
-            msg.address = address;
-            msg.type = ecs::osc_component::OSCMessage::INT;
-            msg.intValue = intValue;
-            comp.messageQueue.push_back(msg);
-        }
-        
-        ImGui::InputText("String", stringValue, 256);
-        if (ImGui::Button("Send String")) {
-            ecs::osc_component::OSCMessage msg;
-            msg.address = address;
-            msg.type = ecs::osc_component::OSCMessage::STRING;
-            msg.stringValue = stringValue;
-            comp.messageQueue.push_back(msg);
-        }
-    });
-    
-    inspector.addCustomProperty("Status", [&]() {
-        if (comp.sendEnabled) {
-            ImGui::TextColored(ImVec4(0, 1, 0, 1), "Sending to %s:%d", 
-                comp.sendHost.c_str(), comp.sendPort);
-        }
-        if (comp.receiveEnabled) {
-            ImGui::TextColored(ImVec4(0, 1, 0, 1), "Receiving on port %d", 
-                comp.receivePort);
-        }
-    });
+	registerVisitFields(comp, inspector);
 }
 
-// ============================================================================
-// Audio Source Component Inspector
-// ============================================================================
+void registerProperties(ecs::gpio_component& comp, ComponentInspector& inspector) {
+	registerVisitFields(comp, inspector);
+	inspector.addCustomProperty("State", [&comp]() {
+		ImGui::Text("%s", comp.state ? "HIGH" : "LOW");
+		if (comp.justPressed) ImGui::TextColored(ImVec4(0.2f, 1.f, 0.4f, 1.f), "Just pressed");
+		if (comp.justReleased) ImGui::TextColored(ImVec4(1.f, 0.6f, 0.2f, 1.f), "Just released");
+	});
+}
+
+void registerProperties(ecs::network_device_component& comp, ComponentInspector& inspector) {
+	registerVisitFields(comp, inspector);
+	inspector.addCustomProperty("Status", [&comp]() {
+		if (comp.online)
+			ImGui::TextColored(ImVec4(0.2f, 1.f, 0.4f, 1.f), "Online  RSSI %d  RTT %.1f ms",
+			                   (int)comp.rssi, comp.rttMs);
+		else
+			ImGui::TextDisabled("Offline");
+		if (!comp.firmwareVersion.empty())
+			ImGui::Text("Firmware: %s", comp.firmwareVersion.c_str());
+	});
+}
+
+void registerProperties(ecs::sacn_output_component& comp, ComponentInspector& inspector) {
+	registerVisitFields(comp, inspector);
+}
 
 void registerProperties(ecs::audio_source_component& comp, ComponentInspector& inspector) {
     inspector.addProperty("Enabled", &comp.enabled);
@@ -195,10 +89,6 @@ void registerProperties(ecs::audio_source_component& comp, ComponentInspector& i
         }
     });
 }
-
-// ============================================================================
-// MIDI Source Component Inspector
-// ============================================================================
 
 void registerProperties(ecs::midi_source_component& comp, ComponentInspector& inspector) {
     inspector.addProperty("Enabled", &comp.enabled);

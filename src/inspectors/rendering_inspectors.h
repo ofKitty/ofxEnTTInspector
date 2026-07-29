@@ -7,6 +7,7 @@
 namespace inspector {
 
 void registerProperties(ecs::light_component& comp, ComponentInspector& inspector);
+void registerProperties(ecs::projector_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::material_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::shader_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::texture_component& comp, ComponentInspector& inspector);

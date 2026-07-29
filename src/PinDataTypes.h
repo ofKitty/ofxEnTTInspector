@@ -17,6 +17,7 @@ enum class PinDataType {
     Quat,
     Color,
     Trigger,
+    Entity,
     Any
 };
 
@@ -37,6 +38,7 @@ inline ImU32 getPinColor(PinDataType type) {
         case PinDataType::Quat:    return IM_COL32(200, 160,  60, 255);
         case PinDataType::Color:   return IM_COL32(255, 150, 200, 255);
         case PinDataType::Trigger: return IM_COL32(255, 255, 255, 255);
+        case PinDataType::Entity:  return IM_COL32( 80, 180, 220, 255);
         case PinDataType::Any:     return IM_COL32(150, 150, 150, 255);
         default:                   return IM_COL32(200, 200, 200, 255);
     }

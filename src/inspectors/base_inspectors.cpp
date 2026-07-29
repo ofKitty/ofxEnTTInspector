@@ -393,20 +393,25 @@ void registerProperties(ecs::mesh_component& comp, ComponentInspector& inspector
             comp.rebuild();
         }
     });
+    // Float properties for Machine Get/Set Property (and modulators).
+    inspector.addProperty("Radius", &comp.radius);
+    inspector.addProperty("Width",  &comp.width);
+    inspector.addProperty("Height", &comp.height);
+    inspector.addProperty("Depth",  &comp.depth);
     inspector.addCustomProperty("Dimensions", [&comp]() {
         bool changed = false;
         if (comp.primitiveType == ecs::MESH_BOX || comp.primitiveType == ecs::MESH_PLANE) {
-            changed |= ImGui::DragFloat("Width",  &comp.width,  1.f, 1.f, 1000.f);
-            changed |= ImGui::DragFloat("Height", &comp.height, 1.f, 1.f, 1000.f);
+            changed |= ImGui::DragFloat("Width##dim",  &comp.width,  1.f, 0.01f, 1000.f);
+            changed |= ImGui::DragFloat("Height##dim", &comp.height, 1.f, 0.01f, 1000.f);
             if (comp.primitiveType == ecs::MESH_BOX)
-                changed |= ImGui::DragFloat("Depth", &comp.depth, 1.f, 1.f, 1000.f);
+                changed |= ImGui::DragFloat("Depth##dim", &comp.depth, 1.f, 0.01f, 1000.f);
         }
         if (comp.primitiveType == ecs::MESH_SPHERE || comp.primitiveType == ecs::MESH_CONE ||
             comp.primitiveType == ecs::MESH_CYLINDER || comp.primitiveType == ecs::MESH_ICOSPHERE ||
             comp.primitiveType == ecs::MESH_ICOSAHEDRON)
-            changed |= ImGui::DragFloat("Radius", &comp.radius, 1.f, 1.f, 500.f);
+            changed |= ImGui::DragFloat("Radius##dim", &comp.radius, 0.01f, 0.01f, 500.f);
         if (comp.primitiveType == ecs::MESH_CONE || comp.primitiveType == ecs::MESH_CYLINDER)
-            changed |= ImGui::DragFloat("Height", &comp.height, 1.f, 1.f, 1000.f);
+            changed |= ImGui::DragFloat("Height##dim", &comp.height, 1.f, 0.01f, 1000.f);
         if (comp.primitiveType != ecs::MESH_CUSTOM && comp.primitiveType != ecs::MESH_ICOSAHEDRON)
             changed |= ImGui::DragInt("Resolution", &comp.resolution, 0.1f, 1, 10);
         if (changed && comp.primitiveType != ecs::MESH_CUSTOM) comp.rebuild();
@@ -571,35 +576,6 @@ void registerProperties(ecs::resource_component& comp, ComponentInspector& inspe
             if (ImGui::InputText("##Path", buf, sizeof(buf)))
                 registry.patch<ecs::filepath_component>(entity, [buf](auto& c){ c.path = std::string(buf); });
         } else { ImGui::TextDisabled("No path component"); }
-    });
-}
-
-// ============================================================================
-// Canvas Effects Component Inspector
-// ============================================================================
-
-void registerProperties(ecs::canvas_effects_component& comp, ComponentInspector& inspector,
-                        entt::registry& registry, entt::entity /*entity*/) {
-    inspector.addProperty("Auto Apply", &comp.autoApply);
-    inspector.addProperty("Use Ping-Pong", &comp.usePingPong);
-
-    inspector.addCustomProperty("Effect Stack", [&]() {
-        int count = comp.getEffectCount();
-        ImGui::Text("Filters: %d", count);
-        for (int i = 0; i < count; i++) {
-            ImGui::PushID(i);
-            auto e = comp.effectStack[i];
-            ImGui::Bullet();
-            ImGui::Text("Filter entity #%u", (uint32_t)e);
-            ImGui::SameLine();
-            if (ImGui::ArrowButton("##up", ImGuiDir_Up)   && i > 0)         comp.moveUp(i);
-            ImGui::SameLine();
-            if (ImGui::ArrowButton("##dn", ImGuiDir_Down) && i < count - 1) comp.moveDown(i);
-            ImGui::SameLine();
-            if (ImGui::SmallButton("X")) { comp.removeEffect(e); ImGui::PopID(); break; }
-            ImGui::PopID();
-        }
-        if (ImGui::Button("Clear All")) comp.clearEffects();
     });
 }
 

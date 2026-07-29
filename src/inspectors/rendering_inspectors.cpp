@@ -41,6 +41,25 @@ void registerProperties(ecs::light_component& comp, ComponentInspector& inspecto
 }
 
 // ============================================================================
+// Projector Component Inspector
+// ============================================================================
+
+void registerProperties(ecs::projector_component& comp, ComponentInspector& inspector) {
+    inspector.addProperty("Throw", &comp.throwRatio, 0.01f, 20.0f);
+    inspector.addProperty("Aspect", &comp.aspect, 0.1f, 4.0f);
+    inspector.addProperty("Zoom", &comp.zoom, 0.1f, 10.0f);
+    inspector.addProperty("Projector Index", &comp.projectorIndex, 0, 64);
+    inspector.addProperty("Count X", &comp.projectorCountX, 1, 16);
+    inspector.addProperty("Count Y", &comp.projectorCountY, 1, 16);
+    inspector.addProperty("Sync Spot Cutoff", &comp.syncSpotCutoff);
+
+    inspector.addCustomProperty("Fov", [&]() {
+        ImGui::Text("FOV (full): %.1f°", comp.calculateFovDegrees());
+        ImGui::Text("Spot cutoff (half): %.1f°", comp.calculateFovDegrees() * 0.5f);
+    });
+}
+
+// ============================================================================
 // Material Component Inspector
 // ============================================================================
 

@@ -11,9 +11,8 @@
 //   * entity-inspector rows (via inspector::addExtraEntityInspector),
 //   * "Add Component" picker rows (ecs::registerComponent).
 // It runs automatically at static-init time and is idempotent, so explicit
-// calls are also safe. The gradient *generator* (full-area rasterization) is a
-// render concern and lives in ofxEnTTKit (finalizeGenerators), keeping the
-// paint data layer free of any UI dependency.
+// calls are also safe. Gradient paint data stays in ofxEnTTKit; full-area
+// pattern generators live in ofxPlotGenerators.
 // ============================================================================
 
 namespace inspector {

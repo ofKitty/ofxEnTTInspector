@@ -43,7 +43,25 @@ Two consequences worth knowing:
 
 ---
 
+## Kit coverage
+
+`ofxEnTTInspector` ships ImGui editors for **ofxEnTTKit** components and dispatches them from [`entity_inspector.cpp`](src/entity_inspector.cpp). Headers under [`src/inspectors/`](src/inspectors/):
+
+| Inspector header | Kit components |
+|------------------|----------------|
+| `base_inspectors` | hierarchy, named entity, FBO, mesh/image/video, … |
+| `graphics2d_inspectors` / `paint_inspectors` | 2D shapes, fill/stroke/gradient |
+| `rendering_inspectors` / `animation_inspectors` | lights, materials, tween, particles |
+| `hardware_inspectors` | serial, OSC, GPIO, network device, sACN, audio/MIDI sources |
+| `led_inspectors` | `uv_component`, `uv_sample_component` |
+| `input_inspectors` / `music_inspectors` / … | keyboard, transport, sequencers, … |
+
+**Domain addons** keep their own inspectors and register via `inspector::addExtraEntityInspector` + `ecs::registerComponent`:
+
+---
+
 ## Quick start
+
 
 ```cpp
 #include "ofxEnTTInspector.h"

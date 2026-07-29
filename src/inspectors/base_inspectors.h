@@ -37,6 +37,4 @@ void registerProperties(ecs::model_component& comp, ComponentInspector& inspecto
 void registerProperties(ecs::resource_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::resource_component& comp, ComponentInspector& inspector, entt::registry& registry, entt::entity entity);
 
-void registerProperties(ecs::canvas_effects_component& comp, ComponentInspector& inspector, entt::registry& registry, entt::entity entity);
-
 } // namespace inspector

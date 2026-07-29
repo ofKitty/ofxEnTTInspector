@@ -1,11 +1,8 @@
 #pragma once
 
-#include <ofxEnTTKit_all.h>
-#include <entt/entity/fwd.hpp>
-#include "imgui.h"
+#include "components/led_components.h"
 #include "ComponentInspector.h"
-#include <sstream>
-#include <iomanip>
+#include <entt/entity/fwd.hpp>
 
 namespace inspector {
 

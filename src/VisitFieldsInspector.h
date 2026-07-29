@@ -3,6 +3,7 @@
 #include "ComponentInspector.h"
 #include "json/component_json.h" // visitFields overloads (component_fields.h alone is insufficient)
 
+#include <cstdint>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -20,6 +21,28 @@ struct InspectorFieldVisitor {
 	void operator()(const char*, const char* label, int& v, int min = 0, int max = 100)
 	{
 		ci.addProperty(label, &v, min, max);
+	}
+	void operator()(const char*, const char* label, std::uint16_t& v, int min = 0, int max = 65535)
+	{
+		ci.addCustomProperty(label, [&v, min, max]() {
+			int iv = static_cast<int>(v);
+			if (ImGui::DragInt("##", &iv, 1, min, max)) {
+				v = static_cast<std::uint16_t>(iv);
+				return true;
+			}
+			return false;
+		});
+	}
+	void operator()(const char*, const char* label, std::uint8_t& v, int min = 0, int max = 255)
+	{
+		ci.addCustomProperty(label, [&v, min, max]() {
+			int iv = static_cast<int>(v);
+			if (ImGui::DragInt("##", &iv, 1, min, max)) {
+				v = static_cast<std::uint8_t>(iv);
+				return true;
+			}
+			return false;
+		});
 	}
 	void operator()(const char*, const char* label, bool& v) { ci.addProperty(label, &v); }
 	void operator()(const char*, const char* label, std::string& v) { ci.addProperty(label, &v); }
@@ -50,6 +73,7 @@ struct InspectorFieldVisitor {
 		});
 	}
 	void operator()(const char*, const char*, entt::entity&) {}
+	void operator()(const char*, const char*, std::vector<float>&) {}
 	void operator()(const char*, const char*, std::vector<glm::vec2>&) {}
 	void operator()(const char*, const char*, std::vector<glm::vec3>&) {}
 

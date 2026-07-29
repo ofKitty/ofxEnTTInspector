@@ -13,6 +13,10 @@ namespace inspector {
 // Path Component Inspector
 // ============================================================================
 
+void registerProperties(ecs::corner_radius_component& comp, ComponentInspector& inspector) {
+    registerVisitFields(comp, inspector);
+}
+
 void registerProperties(ecs::path_component& comp, ComponentInspector& inspector) {
     inspector.addProperty("Closed", &comp.closed);
     

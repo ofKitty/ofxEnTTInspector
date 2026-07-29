@@ -6,9 +6,13 @@
 
 namespace inspector {
 
-void registerProperties(ecs::serial_component& comp, ComponentInspector& inspector);
-void registerProperties(ecs::osc_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::audio_source_component& comp, ComponentInspector& inspector);
 void registerProperties(ecs::midi_source_component& comp, ComponentInspector& inspector);
+
+void registerProperties(ecs::serial_component& comp, ComponentInspector& inspector);
+void registerProperties(ecs::osc_component& comp, ComponentInspector& inspector);
+void registerProperties(ecs::gpio_component& comp, ComponentInspector& inspector);
+void registerProperties(ecs::network_device_component& comp, ComponentInspector& inspector);
+void registerProperties(ecs::sacn_output_component& comp, ComponentInspector& inspector);
 
 } // namespace inspector

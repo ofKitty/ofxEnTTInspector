@@ -4,8 +4,6 @@
 #include "ofJson.h"
 #include "inspectors/inspectors.h"
 #include <ofxEnTTKit_all.h>
-#include "components/filter_components.h"
-#include "components/draw_filter_components.h"
 #include "components/eased_pulse_component.h"
 
 namespace inspector {
@@ -55,6 +53,7 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT_CTX(ecs::video_component)
 
     REFLECT(ecs::light_component)
+    REFLECT(ecs::projector_component)
     REFLECT(ecs::material_component)
     REFLECT(ecs::shader_component)
     REFLECT(ecs::texture_component)
@@ -73,6 +72,7 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT(ecs::postfx_component)
 
     REFLECT(ecs::path_component)
+    REFLECT(ecs::corner_radius_component)
     REFLECT(ecs::curve_resolution_component)
     REFLECT(ecs::polyline_component)
     REFLECT(ecs::rectangle_component)
@@ -105,42 +105,11 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT(ecs::mask_component)
     REFLECT(ecs::rigidbody_component)
 
-    REFLECT(ecs::serial_component)
-    REFLECT(ecs::osc_component)
     REFLECT(ecs::audio_source_component)
     REFLECT(ecs::midi_source_component)
-    REFLECT(ecs::canvas_effects_component)
-
-    REFLECT(ecs::uv_component)
-    REFLECT(ecs::uv_sample_component)
 
     REFLECT(ecs::swatch_library_component)
     REFLECT(ecs::swatch_palette_ref_component)
-
-    REFLECT(ecs::tint_filter_component)
-    REFLECT(ecs::invert_filter_component)
-    REFLECT(ecs::mirror_filter_component)
-    REFLECT(ecs::color_adjust_component)
-    REFLECT(ecs::blur_filter_component)
-    REFLECT(ecs::dither_filter_component)
-    REFLECT(ecs::rotate_filter_component)
-    REFLECT(ecs::threshold_filter_component)
-    REFLECT(ecs::posterize_filter_component)
-    REFLECT(ecs::noise_filter_component)
-    REFLECT(ecs::vignette_filter_component)
-    REFLECT(ecs::chromatic_aberration_component)
-    REFLECT(ecs::edge_detect_filter_component)
-    REFLECT(ecs::pixelate_filter_component)
-    REFLECT(ecs::mesh_filter_component)
-    REFLECT(ecs::rings_filter_component)
-    REFLECT(ecs::noise_displacement_component)
-    REFLECT(ecs::line_scan_filter_component)
-    REFLECT(ecs::ascii_filter_component)
-
-    REFLECT(ecs::dots_generator_component)
-    REFLECT(ecs::stripes_generator_component)
-    REFLECT(ecs::checkerboard_generator_component)
-    REFLECT(ecs::noise_generator_component)
 
     REFLECT(ecs::eased_pulse_component)
     REFLECT(ecs::modulator_component)

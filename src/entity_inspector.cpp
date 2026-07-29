@@ -46,13 +46,6 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
         if (ci.hasProperties()) changed |= ci.draw();
     }
 
-    if (registry.any_of<canvas_effects_component>(entity)) {
-        auto& comp = registry.get<canvas_effects_component>(entity);
-        ComponentInspector ci("Canvas Effects");
-        inspector::registerProperties(comp, ci, registry, entity);
-        if (ci.hasProperties()) changed |= ci.draw();
-    }
-
     if (registry.any_of<tag_component>(entity))
         changed |= inspectComponent(registry.get<tag_component>(entity), "Tag");
 
@@ -81,6 +74,9 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     // ── Rendering ────────────────────────────────────────────────────────────
     if (registry.any_of<light_component>(entity))
         changed |= inspectComponent(registry.get<light_component>(entity), "Light");
+
+    if (registry.any_of<projector_component>(entity))
+        changed |= inspectComponent(registry.get<projector_component>(entity), "Projector");
 
     if (registry.any_of<material_component>(entity))
         changed |= inspectComponent(registry.get<material_component>(entity), "Material");
@@ -131,6 +127,14 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     // ── 2D Graphics ──────────────────────────────────────────────────────────
     if (registry.any_of<path_component>(entity))
         changed |= inspectComponent(registry.get<path_component>(entity), "Path");
+
+    if (registry.any_of<corner_radius_component>(entity)) {
+        const bool crChanged = inspectComponent(
+            registry.get<corner_radius_component>(entity), "Corner Radius");
+        if (crChanged)
+            ecs::invalidateRoundedPathCache(registry, entity);
+        changed |= crChanged;
+    }
 
     if (registry.any_of<curve_resolution_component>(entity))
         changed |= inspectComponent(registry.get<curve_resolution_component>(entity), "Curve Resolution");
@@ -226,20 +230,28 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     if (registry.any_of<rigidbody_component>(entity))
         changed |= inspectComponent(registry.get<rigidbody_component>(entity), "Rigidbody");
 
-    // ── Hardware ─────────────────────────────────────────────────────────────
-    if (registry.any_of<serial_component>(entity))
-        changed |= inspectComponent(registry.get<serial_component>(entity), "Serial");
-
-    if (registry.any_of<osc_component>(entity))
-        changed |= inspectComponent(registry.get<osc_component>(entity), "OSC");
-
+    // ── Hardware / LED / network (ofxEnTTKit) ────────────────────────────────
     if (registry.any_of<audio_source_component>(entity))
         changed |= inspectComponent(registry.get<audio_source_component>(entity), "Audio Source");
 
     if (registry.any_of<midi_source_component>(entity))
         changed |= inspectComponent(registry.get<midi_source_component>(entity), "MIDI Source");
 
-    // ── LED / UV ─────────────────────────────────────────────────────────────
+    if (registry.any_of<serial_component>(entity))
+        changed |= inspectComponent(registry.get<serial_component>(entity), "Serial");
+
+    if (registry.any_of<osc_component>(entity))
+        changed |= inspectComponent(registry.get<osc_component>(entity), "OSC");
+
+    if (registry.any_of<gpio_component>(entity))
+        changed |= inspectComponent(registry.get<gpio_component>(entity), "GPIO Trigger");
+
+    if (registry.any_of<network_device_component>(entity))
+        changed |= inspectComponent(registry.get<network_device_component>(entity), "Network Device");
+
+    if (registry.any_of<sacn_output_component>(entity))
+        changed |= inspectComponent(registry.get<sacn_output_component>(entity), "sACN Output");
+
     if (registry.any_of<uv_component>(entity)) {
         auto& comp = registry.get<uv_component>(entity);
         ComponentInspector ci("UV Mapping");
@@ -261,10 +273,7 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
     if (registry.any_of<swatch_palette_ref_component>(entity))
         changed |= inspectComponent(registry.get<swatch_palette_ref_component>(entity), "Swatch Palette Ref");
 
-    if (registry.any_of<ecs::color_band_component>(entity))
-        changed |= inspectComponent(registry.get<ecs::color_band_component>(entity), "Color Band");
-
-    // ── Filters ──────────────────────────────────────────────────────────────
+    // ── Modulators / state ───────────────────────────────────────────────────
     #define INSPECT_FILTER(T, label) \
         if (registry.any_of<ecs::T>(entity)) { \
             ComponentInspector ci(label); \
@@ -272,33 +281,6 @@ bool inspectEntity(entt::registry& registry, entt::entity entity) {
             changed |= ci.draw(); \
         }
 
-    INSPECT_FILTER(tint_filter_component,            "Tint Filter")
-    INSPECT_FILTER(invert_filter_component,          "Invert Filter")
-    INSPECT_FILTER(mirror_filter_component,          "Mirror Filter")
-    INSPECT_FILTER(color_adjust_component,           "Color Adjust")
-    INSPECT_FILTER(blur_filter_component,            "Blur Filter")
-    INSPECT_FILTER(dither_filter_component,          "Dither Filter")
-    INSPECT_FILTER(rotate_filter_component,          "Rotate Filter")
-    INSPECT_FILTER(threshold_filter_component,       "Threshold Filter")
-    INSPECT_FILTER(posterize_filter_component,       "Posterize Filter")
-    INSPECT_FILTER(noise_filter_component,           "Noise Filter")
-    INSPECT_FILTER(vignette_filter_component,        "Vignette Filter")
-    INSPECT_FILTER(chromatic_aberration_component,   "Chromatic Aberration")
-    INSPECT_FILTER(edge_detect_filter_component,     "Edge Detect Filter")
-    INSPECT_FILTER(pixelate_filter_component,        "Pixelate Filter")
-    INSPECT_FILTER(mesh_filter_component,            "Mesh Filter")
-    INSPECT_FILTER(rings_filter_component,           "Rings Filter")
-    INSPECT_FILTER(noise_displacement_component,     "Noise Displacement")
-    INSPECT_FILTER(line_scan_filter_component,       "Line Scan Filter")
-    INSPECT_FILTER(ascii_filter_component,           "ASCII Filter")
-
-    // ── Generators ───────────────────────────────────────────────────────────
-    INSPECT_FILTER(dots_generator_component,         "Dots Generator")
-    INSPECT_FILTER(stripes_generator_component,      "Stripes Generator")
-    INSPECT_FILTER(checkerboard_generator_component, "Checkerboard Generator")
-    INSPECT_FILTER(noise_generator_component,        "Noise Generator")
-
-    // ── Modulators ───────────────────────────────────────────────────────────
     INSPECT_FILTER(modulator_component,              "Modulator")
     INSPECT_FILTER(mod_binding_component,            "Mod Binding")
     INSPECT_FILTER(eased_pulse_component,            "Eased Pulse")
