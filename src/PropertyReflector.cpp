@@ -115,6 +115,10 @@ std::vector<ReflectedProperty> getEntityProperties(entt::registry& reg, entt::en
     REFLECT(ecs::modulator_component)
     REFLECT(ecs::mod_binding_component)
 
+    REFLECT(ecs::clickable_component)
+    REFLECT(ecs::click_bind_component)
+    REFLECT(ecs::flag_component)
+
     #undef REFLECT
     #undef REFLECT_CTX
 

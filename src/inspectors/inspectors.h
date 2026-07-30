@@ -17,6 +17,7 @@
 #include "hardware_inspectors.h"
 #include "led_inspectors.h"
 #include "input_inspectors.h"
+#include "interaction_inspectors.h"
 
 #include "utility_inspectors.h"
 #include "modulator_inspectors.h"
