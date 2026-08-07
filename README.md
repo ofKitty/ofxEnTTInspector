@@ -1,6 +1,6 @@
 # ofxEnTTInspector
 
-ImGui inspector UI for [ofxEnTTKit](https://github.com/ofKitty/ofxEnTTKit) ECS components, creating a unified reflection and serialization foundation.
+ImGui inspector UI for [ofxEnTTKit](https://github.com/ofxyz/ofxEnTTKit) ECS components, creating a unified reflection and serialization foundation.
 
 ---
 

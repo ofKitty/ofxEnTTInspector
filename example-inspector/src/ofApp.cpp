@@ -109,7 +109,7 @@ void ofApp::update() {
         (void)mesh;
         const glm::quat yaw   = glm::angleAxis(glm::radians(0.4f), glm::vec3(0, 1, 0));
         const glm::quat pitch = glm::angleAxis(glm::radians(0.2f), glm::vec3(1, 0, 0));
-        lt.orientation = glm::normalize(yaw * pitch * lt.orientation);
+        lt.rotation = glm::normalize(yaw * pitch * lt.rotation);
     }
 
     ecs::TransformSystem::update(registry);

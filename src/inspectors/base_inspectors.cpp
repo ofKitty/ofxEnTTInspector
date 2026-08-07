@@ -45,13 +45,13 @@ void registerProperties(ecs::LocalTransform& comp, ComponentInspector& inspector
         static std::map<void*, glm::vec3> rotStore;
         glm::vec3& rot = rotStore[&comp];
         if (!ImGui::IsAnyItemActive())
-            rot = glm::degrees(glm::eulerAngles(comp.orientation));
+            rot = glm::degrees(glm::eulerAngles(comp.rotation));
 
         if (ImGui::DragFloat3("##LocalRotation", &rot.x, 0.5f))
-            comp.orientation = glm::quat(glm::radians(rot));
+            comp.rotation = glm::quat(glm::radians(rot));
 
         if (ImGui::Button("Reset Rotation##LocalTransform")) {
-            comp.orientation = glm::quat(1, 0, 0, 0);
+            comp.rotation = glm::quat(1, 0, 0, 0);
             rot = glm::vec3(0.f);
         }
     }, 3);
